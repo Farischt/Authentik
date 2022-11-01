@@ -16,6 +16,7 @@ model User {
   firstName                String
   lastName                 String
   password                 String
+  isVerified               Boolean                   @default(false)
   role                     Role                      @default(USER)
   accountConfirmationToken AccountConfirmationToken?
   sessionTokens            SessionToken[]
