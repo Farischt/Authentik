@@ -12,7 +12,7 @@
     "start": "nest start",
     "dev": "NODE_ENV=dev nest start --watch",
     "sync": "prisma generate",
-    "migrate:dev": "prisma migrate dev",
+    "migrate:dev": "prisma migrate dev && pn sync",
     "migrate:reset": "prisma migrate reset",
     "migrate:deploy": "prisma migrate deploy",
     "start:debug": "nest start --debug --watch",
