@@ -11,15 +11,44 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  firstName String
-  lastName  String
-  // password  String
-  role      Role     @default(USER)
-  profile   Profile?
-  // createdAt DateTime @default(now())
-  // updatedAt DateTime @updatedAt
+  id                       Int                       @id @default(autoincrement())
+  email                    String                    @unique
+  firstName                String
+  lastName                 String
+  password                 String
+  role                     Role                      @default(USER)
+  accountConfirmationToken AccountConfirmationToken?
+  sessionTokens            SessionToken[]
+  passwordResetTokens      PasswordResetToken[]
+  profile                  Profile?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+}
+
+// TODO Think about creating a Token table listing all the tokens since they all have the same fields
+model AccountConfirmationToken {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SessionToken {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  ipAddr    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Profile {

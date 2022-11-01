@@ -2,12 +2,11 @@ import {
   Controller,
   Get,
   Param,
-  BadRequestException,
   HttpException,
   InternalServerErrorException,
   NotFoundException,
+  ParseIntPipe,
 } from "@nestjs/common"
-import { User } from "@prisma/client"
 
 import { UserService } from "../service/user.service"
 
@@ -17,20 +16,16 @@ export class UserController {
 
   /**
    * Retrieve a user by id
-   * @constructor
-   * @param {string} id - The id of the user.
+   * @param {number} id - The id of the user.
    *
    */
   @Get(":id")
-  async get(@Param("id") id: string) {
+  async get(@Param("id", ParseIntPipe) id: number) {
     try {
-      if (typeof id !== "string" || isNaN(parseInt(id))) {
-        throw new BadRequestException("Parameter id is required !")
-      }
-      const user = await this.userService.getUser({ id: parseInt(id) })
+      const user = await this.userService.getUser({ id })
       if (!user) throw new NotFoundException("User not found !")
 
-      return await this.userService.getUser({ id: parseInt(id) })
+      return { ...user, password: null }
     } catch (error) {
       if (error instanceof HttpException) {
         throw error

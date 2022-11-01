@@ -1,0 +1,14 @@
+{
+  "dev": {
+    "APP_PORT": 3000,
+    "DATABASE_URL": "postgresql://postgres:root@localhost:5432/nest-auth-dev?schema=public",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379"
+  },
+  "test": {
+    "APP_PORT": 3000,
+    "DATABASE_URL": "postgresql://postgres:root@localhost:5432/nest-auth-test?schema=public",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379"
+  }
+}
