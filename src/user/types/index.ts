@@ -2,7 +2,7 @@ import { User } from "@prisma/client"
 
 export type CreateUserDto = Omit<
   User,
-  "id" | "createdAt" | "updatedAt" | "role"
+  "id" | "createdAt" | "updatedAt" | "role" | "isVerified"
 > &
   Partial<Pick<User, "role">>
 
