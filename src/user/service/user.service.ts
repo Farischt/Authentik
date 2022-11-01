@@ -36,4 +36,14 @@ export class UserService {
       where: userWhereUniqueInput,
     })
   }
+
+  async updateUser(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    data: Prisma.UserUpdateInput
+  ) {
+    return await this.prisma.user.update({
+      where: userWhereUniqueInput,
+      data,
+    })
+  }
 }
