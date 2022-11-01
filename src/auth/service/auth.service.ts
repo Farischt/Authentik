@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs")
-import { Injectable, Inject, CACHE_MANAGER } from "@nestjs/common"
+import { Injectable } from "@nestjs/common"
 import {
   User,
   AccountConfirmationToken,
