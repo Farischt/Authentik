@@ -18,15 +18,13 @@ export class AuthService {
   private readonly SESSION_TOKEN_EXPIRATION = 60 * 60 // 1 hour
 
   constructor(
-    @Inject(CACHE_MANAGER)
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
     private redis: RedisService
   ) {}
 
   public async isEmailAvailable(email: User["email"]): Promise<boolean> {
-    const user = await this.userService.getUser({ email })
-    return !user
+    return (await this.userService.getUser({ email })) === null
   }
 
   public async createUser(input: CreateUserDto): Promise<User> {
@@ -59,15 +57,31 @@ export class AuthService {
     return tokenExpirationDate > new Date()
   }
 
+  public async getSessionToken(
+    sessionTokenWhereUniqueInput: Prisma.SessionTokenWhereUniqueInput
+  ): Promise<SessionToken> {
+    return await this.prisma.sessionToken.findUnique({
+      where: sessionTokenWhereUniqueInput,
+    })
+  }
+
   public async getSessionTokenById(
     tokenId: SessionToken["id"]
   ): Promise<SessionToken> {
     return (
       (await this.redis.get<SessionToken>(tokenId)) ??
-      (await this.prisma.sessionToken.findUnique({
-        where: { id: tokenId },
+      (await this.getSessionToken({
+        id: tokenId,
       }))
     )
+  }
+
+  public async getAccountConfirmationToken(
+    userWhereUniqueInput: Prisma.AccountConfirmationTokenWhereUniqueInput
+  ): Promise<AccountConfirmationToken> {
+    return await this.prisma.accountConfirmationToken.findUnique({
+      where: userWhereUniqueInput,
+    })
   }
 
   public async createAccountConfirmationToken(
@@ -80,11 +94,10 @@ export class AuthService {
     })
   }
 
-  public async getAccountConfirmationToken(
-    userWhereUniqueInput: Prisma.AccountConfirmationTokenWhereUniqueInput
-  ): Promise<AccountConfirmationToken> {
-    return await this.prisma.accountConfirmationToken.findUnique({
-      where: userWhereUniqueInput,
-    })
+  public async confirmAccount(userId: User["id"]): Promise<User> {
+    return await this.userService.updateUser(
+      { id: userId },
+      { isVerified: true }
+    )
   }
 }
