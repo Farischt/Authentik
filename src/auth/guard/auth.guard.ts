@@ -43,7 +43,18 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>()
 
-    if (["/auth/login"].includes(request.url)) {
+    console.log(request.url)
+
+    if (
+      // [
+      //   "/auth/login",
+      //   "/auth/register",
+      //   "/auth/confirm-account/:token",
+      // ].contains(request.url)
+      request.url === "/auth/login" ||
+      request.url === "/auth/register" ||
+      request.url.includes("/auth/confirm-account/")
+    ) {
       return await this.isUserUnauthenticated(request)
     }
 
