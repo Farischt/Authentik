@@ -12,6 +12,7 @@ const DEFAULT_USER = {
   lastName: "User",
   password: "test",
   role: "USER" as Role,
+  isVerified: false,
   createdAt: new Date(),
   updatedAt: null,
 }
