@@ -10,6 +10,7 @@ describe("AuthController", () => {
   let controller: AuthController
 
   beforeEach(async () => {
+    // TODO: use valid dependencies
     const app: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule,

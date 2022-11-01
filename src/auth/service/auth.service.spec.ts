@@ -1,23 +1,21 @@
 import { Test, TestingModule } from "@nestjs/testing"
+
 import { RedisModule } from "../../cache/redis.module"
 import { AuthService } from "./auth.service"
 import { PrismaModule } from "../../database/prisma.module"
-import { UserModule } from "../../user/user.module"
-import { AuthModule } from "../../auth/auth.module"
 import { ConfigurationModule as ConfigModule } from "../../config/config.module"
+import { UserService } from "../../user/service/user.service"
+import { AuthController } from "../controller/auth.controller"
 
 describe("AuthService", () => {
   let service: AuthService
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule,
-        RedisModule,
-        UserModule,
-        PrismaModule,
-        AuthModule,
-      ],
+      imports: [PrismaModule, ConfigModule, RedisModule],
+      providers: [AuthService, UserService],
+      controllers: [AuthController],
+      exports: [AuthService],
     }).compile()
 
     service = app.get<AuthService>(AuthService)
