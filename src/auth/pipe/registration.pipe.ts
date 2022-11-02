@@ -1,5 +1,5 @@
 import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common"
-import { CreateUserDto } from "src/user/types"
+import { CreateUserDto } from "../../user/types"
 import { AuthService } from "../service/auth.service"
 import { AuthError } from "../types"
 
