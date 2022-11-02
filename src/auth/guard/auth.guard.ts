@@ -11,14 +11,14 @@ import { AuthService } from "../service/auth.service"
 export class AuthGuard implements CanActivate {
   constructor(private readonly authService: AuthService) {}
 
-  private async isUserAuthenticated(request: Request): Promise<boolean> {
-    if (!request.cookies.session)
+  private async hasUserValidSessionToken(request: Request): Promise<boolean> {
+    if (!request.cookies["session-token"])
       throw new ForbiddenException(
         "No session cookie found. Please login to continue."
       )
 
     const session = await this.authService.getSessionTokenById(
-      request.cookies.session as string
+      request.cookies["session-token"] as string
     )
 
     if (!session)
@@ -33,8 +33,8 @@ export class AuthGuard implements CanActivate {
     return true
   }
 
-  private async isUserUnauthenticated(request: Request): Promise<boolean> {
-    if (request.cookies.session)
+  private async hasUserNoSessionToken(request: Request): Promise<boolean> {
+    if (request.cookies["session-token"])
       throw new ForbiddenException("You are already logged in")
 
     return true
@@ -42,22 +42,14 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>()
-
-    console.log(request.url)
-
     if (
-      // [
-      //   "/auth/login",
-      //   "/auth/register",
-      //   "/auth/confirm-account/:token",
-      // ].contains(request.url)
       request.url === "/auth/login" ||
       request.url === "/auth/register" ||
       request.url.includes("/auth/confirm-account/")
     ) {
-      return await this.isUserUnauthenticated(request)
+      return await this.hasUserNoSessionToken(request)
     }
 
-    return await this.isUserAuthenticated(request)
+    return await this.hasUserValidSessionToken(request)
   }
 }
