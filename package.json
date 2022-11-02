@@ -12,7 +12,7 @@
     "start": "nest start",
     "dev": "NODE_ENV=dev nest start --watch",
     "sync": "prisma generate",
-    "migrate:dev": "prisma migrate dev && pn sync",
+    "migrate:dev": "prisma migrate dev && pnpm sync",
     "migrate:reset": "prisma migrate reset",
     "migrate:deploy": "prisma migrate deploy",
     "start:debug": "nest start --debug --watch",
@@ -22,7 +22,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "docker:dev": "docker-compose -f docker-compose.yml up"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
