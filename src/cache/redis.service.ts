@@ -12,4 +12,8 @@ export class RedisService {
   async set<T>(key: string, value: T, options?: CachingConfig): Promise<void> {
     await this.cacheManager.set(key, value, options)
   }
+
+  async del(key: string): Promise<void> {
+    await this.cacheManager.del(key)
+  }
 }
