@@ -1,14 +1,62 @@
 version: "3.9"
+name: "Authentik"
 services:
   redis:
+    container_name: authentik_redis
     image: redis:6.0
     ports:
       - 6379:6379
+    volumes:
+      - ./data/redis:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - backend
+
   redis-commander:
-    container_name: redis-commander
+    container_name: authentik_redis_commander
     hostname: redis-commander
     image: ghcr.io/joeferner/redis-commander:latest
     environment:
       - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=root
+      - HTTP_PASSWORD=qwerty
     ports:
       - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  database:
+    container_name: authentik_pg_database
+    image: postgres:alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: nest-auth-dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  adminer:
+    container_name: authentik_pg_adminer
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    networks:
+      - backend
+
+networks:
+  backend:
+    name: authentik_network
+
+volumes:
+  data:
+    driver: local
