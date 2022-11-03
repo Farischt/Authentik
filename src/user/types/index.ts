@@ -6,12 +6,8 @@ export type CreateUserDto = Omit<
 > &
   Partial<Pick<User, "role">>
 
-export type UserOutputDto = Omit<User, "password"> & {
-  password: null
-}
+export type UpdateUserDto = Partial<CreateUserDto>
 
 export type UserWithoutPassword = Omit<User, "password"> & {
   password: null
 }
-
-export type UpdateUserDto = Partial<CreateUserDto>
