@@ -64,8 +64,18 @@ export class AuthController {
       if (!accountConfirmationToken)
         throw new BadRequestException("Invalid account confirmation token !")
 
+      /* Removed in order to avoid case when user didn't confirm account whiting token expiration time
       if (!this.authService.isTokenValid(accountConfirmationToken))
-        throw new BadRequestException("Account confirmation token expired !")
+      throw new BadRequestException("Account confirmation token expired !") */
+
+      if (
+        this.authService.isUserVerified(
+          await this.authService.getUser({
+            id: accountConfirmationToken.userId,
+          })
+        )
+      )
+        throw new BadRequestException("Account already confirmed !")
 
       /** This update the user and delete the token */
       const user = await this.authService.confirmAccount(
@@ -94,7 +104,7 @@ export class AuthController {
       // Check if user exists
       const user = await this.authService.getUser({ email })
       if (!user) throw new BadRequestException("Invalid credentials !")
-      else if (!this.authService.isUserAuthorizedToLogin(user)) {
+      else if (!this.authService.isUserVerified(user)) {
         throw new BadRequestException("Invalid credentials !")
       }
 
