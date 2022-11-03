@@ -7,13 +7,13 @@ services:
     ports:
       - 6379:6379
     volumes:
-      - ./data/redis:/data
+      - ./docker/redis:/data
     command: ["redis-server", "--appendonly", "yes"]
     networks:
       - backend
 
   redis-commander:
-    container_name: authentik_redis_commander
+    container_name: authentik_commander
     hostname: redis-commander
     image: ghcr.io/joeferner/redis-commander:latest
     environment:
@@ -28,7 +28,7 @@ services:
       - backend
 
   database:
-    container_name: authentik_pg_database
+    container_name: authentik_db
     image: postgres:alpine
     restart: always
     environment:
@@ -38,12 +38,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./docker/postgres:/var/lib/postgresql/data
     networks:
       - backend
 
   adminer:
-    container_name: authentik_pg_adminer
+    container_name: authentik_adminer
     image: adminer
     restart: always
     ports:
@@ -53,10 +53,25 @@ services:
     networks:
       - backend
 
+  # -------------------------------------------------------------------------- #
+  #                       Prisma issue on binary targets                       #
+  # -------------------------------------------------------------------------- #
+
+  # rest-api:
+  #   container_name: authentik_api
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - database
+  #     - redis
+  #   networks:
+  #     - backend
+
 networks:
   backend:
     name: authentik_network
 
 volumes:
-  data:
+  docker:
     driver: local
