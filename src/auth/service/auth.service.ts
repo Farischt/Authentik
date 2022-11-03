@@ -26,6 +26,26 @@ export class AuthService {
   ) {}
 
   /**
+   * Get a user
+   *
+   * @param userWhereUniqueInput the user's unique input (id, email, etc.)
+   * @returns The user
+   */
+  public async getUser(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
+    return await this.userService.getUser(userWhereUniqueInput)
+  }
+
+  /**
+   * Create a new user
+   *
+   * @param input The user to create data
+   * @returns The created user
+   */
+  public async createUser(input: CreateUserDto): Promise<User> {
+    return await this.userService.createUser(input)
+  }
+
+  /**
    * Check either if an email is available or not
    *
    * @param email
@@ -36,17 +56,13 @@ export class AuthService {
   }
 
   /**
-   * Create a new user
+   * Check if the user is verified
    *
-   * @param input The user to create data
-   * @returns User created
+   * @param user The user to check
+   * @returns true if the user can login, false if not
    */
-  public async createUser(input: CreateUserDto): Promise<User> {
-    return await this.userService.createUser(input)
-  }
-
-  public async getUser(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
-    return await this.userService.getUser(userWhereUniqueInput)
+  public isUserVerified(user: User): boolean {
+    return user.isVerified
   }
 
   /* -------------------------------------------------------------------------- */
@@ -61,15 +77,6 @@ export class AuthService {
    */
   public isPasswordLongEnough(password: User["password"]): boolean {
     return password.length >= 8
-  }
-
-  /**
-   * Check if the user can login
-   * @param user The user to check
-   * @returns true if the user can login, false if not
-   */
-  public isUserAuthorizedToLogin(user: User): boolean {
-    return user.isVerified
   }
 
   /**
@@ -94,6 +101,7 @@ export class AuthService {
 
   /**
    * Compare a password with a hashed password
+   *
    * @param password The password to compare
    * @param hash The hashed password to compare
    * @returns true if the password is the same as the hashed password, false if not
@@ -105,8 +113,13 @@ export class AuthService {
     return await bcrypt.compare(password, hash)
   }
 
+  /* -------------------------------------------------------------------------- */
+  /*                             Token management                               */
+  /* -------------------------------------------------------------------------- */
+
   /**
    * Check token validity (expiration date)
+   *
    * @param token The token to check
    * @returns true if the token is valid, false if not
    */
@@ -124,7 +137,8 @@ export class AuthService {
 
   /**
    * Retrieve a session token by its unique input
-   * @param sessionTokenWhereUniqueInput The session token's id or userId to retrieve
+   *
+   * @param sessionTokenWhereUniqueInput the token's unique input (id)
    * @returns The session token including the user
    */
   public async getSessionToken(
@@ -139,7 +153,8 @@ export class AuthService {
 
   /**
    * Retrieve a session token by its id
-   * @param tokenId The session token's id to retrieve
+   *
+   * @param tokenId The session token's id
    * @returns The session token
    */
   public async getSessionTokenById(
@@ -154,6 +169,7 @@ export class AuthService {
 
   /**
    * Create a new session token
+   *
    * @param data The session token's data to create
    * @returns The created session token
    */
@@ -167,7 +183,8 @@ export class AuthService {
 
   /**
    * Delete a session token
-   * @param sessionTokenWhereUniqueInput The session token's id or userId to delete
+   *
+   * @param sessionTokenWhereUniqueInput The session token's unique input (id)
    * @returns The deleted session token
    */
   public async deleteSessionToken(
@@ -179,10 +196,20 @@ export class AuthService {
   }
 
   /**
+   * Get the session token id from the request cookie
+   *
+   * @param req The request
+   * @returns The session token id
+   */
+  public getSessionCookie(req: Request): string {
+    return req.cookies["session-token"]
+  }
+
+  /**
    * set a session token in the response cookie
+   *
    * @param res The response
    * @param token The session token to set
-   * @returns The response with the session token cookie
    */
   public async setSessionCookie(
     res: Response,
@@ -209,42 +236,11 @@ export class AuthService {
     })
   }
 
-  public getSessionCookie(req: Request): string {
-    return req.cookies["session-token"]
-  }
-
-  private async getAuthenticatedUserFromCache(
-    req: Request
-  ): Promise<UserWithoutPassword> {
-    const { user } = await this.redis.get<SessionDataFromCache>(
-      this.getSessionCookie(req)
-    )
-    return user
-  }
-
-  private async getAuthenticatedUserFromDb(
-    req: Request
-  ): Promise<UserWithoutPassword> {
-    const { user } = await this.getSessionToken({
-      id: this.getSessionCookie(req),
-    })
-    return user
-  }
-
-  public async getAuthenticatedUser(
-    req: Request
-  ): Promise<UserWithoutPassword> {
-    return (
-      (await this.getAuthenticatedUserFromCache(req)) ||
-      (await this.getAuthenticatedUserFromDb(req))
-    )
-  }
-
   /**
-   * Delete a session token from the response cookie and the redis cache
+   * Remove a session token from the response cookie and the redis cache
+   *
    * @param res The response
-   * @param tokenId The session tokenId to delete
-   * @returns The response with the session token cookie deleted
+   * @param tokenId The session tokenId to remove
    */
   public async removeSessionCookie(
     res: Response,
@@ -254,13 +250,59 @@ export class AuthService {
     res.clearCookie("session-token")
   }
 
+  /**
+   * Get the authenticated user from the cache
+   *
+   * @param req The request
+   * @returns The authenticated user
+   */
+  private async getAuthenticatedUserFromCache(
+    req: Request
+  ): Promise<UserWithoutPassword> {
+    const { user } = await this.redis.get<SessionDataFromCache>(
+      this.getSessionCookie(req)
+    )
+    return user
+  }
+
+  /**
+   * Get the authenticated user from the database (to be used when the user is not in the cache)
+   *
+   * @param req The request
+   * @returns The authenticated user
+   */
+  private async getAuthenticatedUserFromDb(
+    req: Request
+  ): Promise<UserWithoutPassword> {
+    const { user } = await this.getSessionToken({
+      id: this.getSessionCookie(req),
+    })
+    return user
+  }
+
+  /**
+   * Get the authenticated user from the cache or the database
+   *
+   * @param req The request
+   * @returns The authenticated user
+   */
+  public async getAuthenticatedUser(
+    req: Request
+  ): Promise<UserWithoutPassword> {
+    return (
+      (await this.getAuthenticatedUserFromCache(req)) ||
+      (await this.getAuthenticatedUserFromDb(req))
+    )
+  }
+
   /* -------------------------------------------------------------------------- */
   /*                            Account Confirmation                            */
   /* -------------------------------------------------------------------------- */
 
   /**
    * Retrieve an account confirmation token by its unique input (id or userId)
-   * @param  accountConfirmationTokenWhereUniqueInput The account confirmation token's id or userId to retrieve
+   *
+   * @param accountConfirmationTokenWhereUniqueInput The account confirmation token's unique input (id or userId)
    * @returns The account confirmation token
    */
   public async getAccountConfirmationToken(
@@ -272,7 +314,8 @@ export class AuthService {
   }
 
   /**
-   * Creates a new account confirmation token
+   * Create a new account confirmation token
+   *
    * @param data The account confirmation data to create
    * @returns The created account confirmation token
    */
@@ -286,7 +329,8 @@ export class AuthService {
 
   /**
    * Delete an account confirmation token
-   * @param accountConfirmationTokenWhereUniqueInput The account confirmation token's id or userId to delete
+   *
+   * @param accountConfirmationTokenWhereUniqueInput The account confirmation token's unique input (id or userId)
    * @returns The deleted account confirmation token
    */
   private async deleteAccountConfirmationToken(
@@ -298,6 +342,7 @@ export class AuthService {
   }
 
   /**
+   * Verify the user's account and delete the account confirmation token
    *
    * @param userId
    * @returns The confirmed user

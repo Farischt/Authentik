@@ -8,7 +8,13 @@ import { CreateUserDto } from "../types"
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUser(
+  /**
+   * Get a user
+   *
+   * @param userWhereUniqueInput the user's unique input (id, email, etc.)
+   * @returns The user or null if not found
+   */
+  public async getUser(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput
   ): Promise<User> {
     return await this.prisma.user.findUnique({
@@ -16,34 +22,63 @@ export class UserService {
     })
   }
 
-  async createUser(data: CreateUserDto): Promise<User> {
+  /**
+   * Create a new user
+   *
+   * @param data The user to create data
+   * @returns The user created
+   */
+  public async createUser(data: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
       data,
     })
   }
 
-  async createUserWithRole(data: CreateUserDto, role: Role): Promise<User> {
-    return this.prisma.user.create({
-      data: {
-        ...data,
-        role,
-      },
+  /**
+   * Create a new user with a role
+   *
+   * @param data The user to create data without role
+   * @param role The role to assign to the user
+   * @returns The user created
+   */
+  public async createUserWithRole(
+    data: Omit<CreateUserDto, "role">,
+    role: Role
+  ): Promise<User> {
+    return await this.createUser({
+      ...data,
+      role,
     })
   }
 
-  async deleteUser(userWhereUniqueInput: Prisma.UserWhereUniqueInput) {
-    return await this.prisma.user.delete({
-      where: userWhereUniqueInput,
-    })
-  }
-
-  async updateUser(
+  /**
+   * Update a user
+   *
+   * @param userWhereUniqueInput the user's unique input (id, email, etc.)
+   * @param data The data to update
+   * @returns The user updated
+   */
+  public async updateUser(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput,
     data: Prisma.UserUpdateInput
-  ) {
+  ): Promise<User> {
     return await this.prisma.user.update({
       where: userWhereUniqueInput,
       data,
+    })
+  }
+
+  /**
+   * Delete a user
+   *
+   * @param userWhereUniqueInput the user's unique input (id, email, etc.)
+   * @returns The user deleted
+   */
+  public async deleteUser(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput
+  ): Promise<User> {
+    return await this.prisma.user.delete({
+      where: userWhereUniqueInput,
     })
   }
 }

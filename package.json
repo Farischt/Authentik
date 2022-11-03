@@ -1,16 +1,25 @@
 {
-  "name": "nest-auth",
+  "name": "authentik",
   "version": "1.0.0",
-  "description": "",
-  "author": "Faris Chtatou <faris.manage@gmail.com>",
+  "description": "REST-API for authentication and authorization purposes",
+  "author": {
+    "name": "Faris Chtatou",
+    "email": "faris.manage@gmail.com",
+    "url": "https://www.farischt.me/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Farischt/Authentik.git"
+  },
   "private": true,
   "license": "UNLICENSED",
+  "main": "main.js",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "pnpm sync && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && prisma format",
     "start": "nest start",
-    "dev": "NODE_ENV=dev nest start --watch",
+    "dev": "nest start --watch",
     "sync": "prisma generate",
     "migrate:dev": "prisma migrate dev && pnpm sync",
     "migrate:reset": "prisma migrate reset",

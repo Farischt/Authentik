@@ -16,8 +16,9 @@ export class UserController {
 
   /**
    * Retrieve a user by id
-   * @param {number} id - The id of the user.
    *
+   * @param  id - The id of the user.
+   * @returns The user.
    */
   @Get(":id")
   async get(@Param("id", ParseIntPipe) id: number) {

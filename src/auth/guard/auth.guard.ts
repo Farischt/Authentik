@@ -11,6 +11,13 @@ import { AuthService } from "../service/auth.service"
 export class AuthGuard implements CanActivate {
   constructor(private readonly authService: AuthService) {}
 
+  /**
+   * Check if the incoming request has a valid session token
+   *
+   * @param request the incoming request
+   * @returns true if the session token is valid
+   * @throws ForbiddenException otherwise
+   */
   private async hasUserValidSessionToken(request: Request): Promise<boolean> {
     if (!request.cookies["session-token"])
       throw new ForbiddenException(
@@ -33,6 +40,13 @@ export class AuthGuard implements CanActivate {
     return true
   }
 
+  /**
+   * Check if the incoming has no session token
+   *
+   * @param request the incoming request
+   * @returns true if the incoming request has no session token
+   * @throws ForbiddenException otherwise
+   */
   private async hasUserNoSessionToken(request: Request): Promise<boolean> {
     if (request.cookies["session-token"])
       throw new ForbiddenException("You are already logged in")
