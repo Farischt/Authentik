@@ -1,8 +1,25 @@
 import * as config from "./config.json"
 
-const env = process.env.NODE_ENV
+export type RedisConfig = {
+  HOST: string
+  PORT: number
+  USERNAME: string
+  PASSWORD: string
+}
 
-export default () => ({
+export type DatabaseConfig = {
+  URL: string
+}
+
+export type BaseConfig = {
+  PORT: number
+  DATABASE: DatabaseConfig
+  REDIS: RedisConfig
+}
+
+const env = process.env.NODE_ENV || "development"
+
+export default (): BaseConfig => ({
   PORT: parseInt(config[env].APP_PORT, 10),
   DATABASE: {
     URL: config[env].DATABASE_URL,
@@ -14,10 +31,3 @@ export default () => ({
     PASSWORD: config[env].REDIS_PASSWORD,
   },
 })
-
-export type RedisConfig = {
-  HOST: string
-  PORT: number
-  USERNAME: string
-  PASSWORD: string
-}
