@@ -15,7 +15,7 @@ export class LoginPipe implements PipeTransform {
       throw new BadRequestException(AuthError.PasswordRequired)
     } else if (!this.authService.isPasswordLongEnough(password)) {
       throw new BadRequestException(AuthError.PasswordNotLong)
-    } else if (!this.authService.isPasswordStrong(password)) {
+    } else if (!this.authService.isPasswordStrongEnough(password)) {
       throw new BadRequestException(AuthError.PasswordNotStrong)
     }
 
