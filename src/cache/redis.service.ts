@@ -12,7 +12,7 @@ export class RedisService {
    * @returns The value
    */
   public async get<T>(key: string): Promise<T> {
-    return await this.cacheManager.get(key)
+    return await this.cacheManager.get<T>(key)
   }
 
   /**
@@ -27,7 +27,7 @@ export class RedisService {
     value: T,
     options?: CachingConfig
   ): Promise<void> {
-    await this.cacheManager.set(key, value, options)
+    await this.cacheManager.set<T>(key, value, options)
   }
 
   /**
