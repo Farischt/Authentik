@@ -1,4 +1,21 @@
-import { User } from "@prisma/client"
+import { User, Role } from "@prisma/client"
+
+export class UserWithoutPassword implements User {
+  id: number
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  role: Role
+  isVerified: boolean
+  createdAt: Date
+  updatedAt: Date
+
+  constructor(user: User) {
+    Object.assign(this, user)
+    this.password = null
+  }
+}
 
 export type CreateUserDto = Omit<
   User,
@@ -7,7 +24,3 @@ export type CreateUserDto = Omit<
   Partial<Pick<User, "role">>
 
 export type UpdateUserDto = Partial<CreateUserDto>
-
-export type UserWithoutPassword = Omit<User, "password"> & {
-  password: null
-}
