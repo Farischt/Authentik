@@ -1,4 +1,9 @@
-import { User, SessionToken } from "@prisma/client"
+import {
+  User,
+  SessionToken,
+  AccountConfirmationToken,
+  PasswordResetToken,
+} from "@prisma/client"
 import { UserWithoutPassword } from "../../user/types"
 
 export enum AuthError {
@@ -19,13 +24,31 @@ export enum AuthTokenError {
   TokenExpired = "Token expired !",
 }
 
+export interface AuthResponseType {
+  message: string
+}
+
+export interface AuthConfirmAcountResponseType extends AuthResponseType {
+  email: string
+}
+
+export interface AuthLoginResponseType extends AuthResponseType {
+  loggedIn: boolean
+}
+
 export type LoginDto = Pick<User, "email" | "password">
 
-export type SessionDataFromCache = {
+export type CacheSessionData = {
   token: SessionToken
   user: UserWithoutPassword
 }
 
-export type SessionTokenWithoutUserPassword = Omit<SessionToken, "user"> & {
-  user: UserWithoutPassword
+export type SessionTokenWithoutUserPassword = SessionToken & {
+  user: UserWithoutPassword | undefined
+}
+
+export type Token = SessionToken | AccountConfirmationToken | PasswordResetToken
+
+export type TokenWithoutUserPassword = Token & {
+  user: UserWithoutPassword | undefined
 }
