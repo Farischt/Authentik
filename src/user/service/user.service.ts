@@ -29,7 +29,7 @@ export class UserService {
    * @returns The user created
    */
   public async createUser(data: CreateUserDto): Promise<User> {
-    return this.prisma.user.create({
+    return await this.prisma.user.create({
       data,
     })
   }
