@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
   InternalServerErrorException,
   NotFoundException,
@@ -21,7 +22,7 @@ import { AuthGuard } from "../guard/auth.guard"
 import { RegistrationPipe } from "../pipe/registration.pipe"
 import { LoginPipe } from "../pipe/login.pipe"
 import { AuthService } from "../service/auth.service"
-import { LoginDto, AuthError } from "../types"
+import { LoginDto, AuthError, AuthConfirmAcountResponseType } from "../types"
 
 @UseGuards(AuthGuard)
 @Controller("auth")
@@ -42,11 +43,9 @@ export class AuthController {
         firstName,
         lastName,
       })
-      await this.authService.createAccountConfirmationToken({
-        user: { connect: { id: user.id } },
-      })
+      await this.authService.createAccountConfirmationToken(user.id)
 
-      return { ...user, password: null }
+      return user
     } catch (error) {
       if (error instanceof HttpException) throw error
       console.log(error)
@@ -55,8 +54,10 @@ export class AuthController {
   }
 
   @Patch("confirm-account/:token")
-  //TODO  Prisma transaction
-  async confirmAccount(@Param("token", ParseUUIDPipe) token: string) {
+  @HttpCode(204)
+  async confirmAccount(
+    @Param("token", ParseUUIDPipe) token: string
+  ): Promise<AuthConfirmAcountResponseType> {
     try {
       const accountConfirmationToken =
         await this.authService.getAccountConfirmationToken({ id: token })
@@ -98,7 +99,7 @@ export class AuthController {
     @Body(LoginPipe) input: LoginDto,
     @Req() req: Request,
     @Res() res: Response
-  ) {
+  ): Promise<void> {
     try {
       const { email, password } = input
       // Check if user exists
@@ -113,12 +114,12 @@ export class AuthController {
         throw new BadRequestException("Invalid credentials !")
 
       // Create session token
-      const sessionToken = await this.authService.createSessionToken({
-        ipAddr: req.ip || "unknown",
-        user: { connect: { id: user.id } },
-      })
+      const sessionToken = await this.authService.createSessionToken(
+        user.id,
+        req.ip
+      )
       await this.authService.setSessionCookie(res, sessionToken, user)
-      res.status(200).json({ loggedIn: true })
+      res.status(201).json({ message: "Logged in", loggedIn: true })
     } catch (error) {
       console.log(error)
       if (error instanceof HttpException) throw error
@@ -127,12 +128,14 @@ export class AuthController {
   }
 
   @Get("user")
-  async getAuthenticatedUser(@Req() req: Request) {
+  async getAuthenticatedUser(
+    @Req() req: Request
+  ): Promise<UserWithoutPassword> {
     try {
-      console.log(req.cookies)
       const user = await this.authService.getAuthenticatedUser(req)
       if (!user)
         throw new NotFoundException("Couldn't find authenticated user !")
+
       return user
     } catch (error) {
       if (error instanceof HttpException) throw error
