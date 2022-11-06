@@ -24,8 +24,9 @@ export class AuthGuard implements CanActivate {
         "No session cookie found. Please login to continue."
       )
 
-    const session = await this.authService.getSessionTokenById(
-      request.cookies["session-token"] as string
+    const session = await this.authService.getSessionTokenWithoutUserPassword(
+      { id: request.cookies["session-token"] as string },
+      false
     )
 
     if (!session)
@@ -41,7 +42,7 @@ export class AuthGuard implements CanActivate {
   }
 
   /**
-   * Check if the incoming has no session token
+   * Check if the incoming request has no session token
    *
    * @param request the incoming request
    * @returns true if the incoming request has no session token
