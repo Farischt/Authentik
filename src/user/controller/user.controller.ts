@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common"
 
 import { UserService } from "../service/user.service"
+import { UserWithoutPassword } from "../types"
 
 @Controller("users")
 export class UserController {
@@ -26,7 +27,7 @@ export class UserController {
       const user = await this.userService.getUser({ id })
       if (!user) throw new NotFoundException("User not found !")
 
-      return { ...user, password: null }
+      return new UserWithoutPassword(user)
     } catch (error) {
       if (error instanceof HttpException) {
         throw error
