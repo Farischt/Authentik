@@ -11,7 +11,7 @@ import { Response, Request } from "express"
 import { RedisService } from "../../cache/redis.service"
 import { PrismaService } from "../../database/prisma.service"
 import { UserService } from "../../user/service/user.service"
-import { CreateUserDto, UserWithoutPassword } from "../../user/types"
+import { CreateUserDto, SerializedUser } from "../../user/types"
 import { CacheSessionData, Token, TokenWithoutUserPassword } from "../types"
 
 @Injectable()
@@ -159,7 +159,7 @@ export class AuthService {
     else if (includeUser && sessionToken.user)
       return {
         ...sessionToken,
-        user: new UserWithoutPassword(sessionToken.user),
+        user: new SerializedUser(sessionToken.user),
       }
 
     return sessionToken
@@ -220,7 +220,7 @@ export class AuthService {
       token.id,
       {
         token,
-        user: new UserWithoutPassword(user),
+        user: new SerializedUser(user),
       },
       {
         ttl: this.SESSION_TOKEN_EXPIRATION,
@@ -255,7 +255,7 @@ export class AuthService {
    */
   private async getAuthenticatedUserFromCache(
     req: Request
-  ): Promise<UserWithoutPassword> {
+  ): Promise<SerializedUser> {
     const session = await this.redis.get<CacheSessionData>(
       this.getSessionCookie(req)
     )
@@ -271,7 +271,7 @@ export class AuthService {
    */
   private async getAuthenticatedUserFromDb(
     req: Request
-  ): Promise<UserWithoutPassword> {
+  ): Promise<SerializedUser> {
     const session = await this.getSessionTokenWithoutUserPassword({
       id: this.getSessionCookie(req),
     })
@@ -285,9 +285,7 @@ export class AuthService {
    * @param req The request
    * @returns The authenticated user
    */
-  public async getAuthenticatedUser(
-    req: Request
-  ): Promise<UserWithoutPassword> {
+  public async getAuthenticatedUser(req: Request): Promise<SerializedUser> {
     return (
       (await this.getAuthenticatedUserFromCache(req)) ||
       (await this.getAuthenticatedUserFromDb(req))

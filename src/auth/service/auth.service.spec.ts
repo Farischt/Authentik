@@ -8,7 +8,7 @@ import { UserService } from "../../user/service/user.service"
 
 import { Role, User, SessionToken } from "@prisma/client"
 import { RedisService } from "../../cache/redis.service"
-import { CreateUserDto, UserWithoutPassword } from "../../user/types"
+import { CreateUserDto, SerializedUser } from "../../user/types"
 import { PrismaService } from "../../database/prisma.service"
 import { SessionTokenWithoutUserPassword } from "../types"
 import { Request, Response } from "express"
@@ -31,7 +31,7 @@ const USER_DATA: User = {
   updatedAt: new Date(),
 }
 
-const USER_DATA_WITHOUT_PASSWORD = new UserWithoutPassword(USER_DATA)
+const USER_DATA_WITHOUT_PASSWORD = new SerializedUser(USER_DATA)
 
 const UNAVAILABLE_USER_EMAIL = "some@random.com"
 const AVAILABLE_USER_EMAIL = "some@available.com"
@@ -271,7 +271,7 @@ describe("AuthService", () => {
             NON_EXPIRED_TOKEN.id,
             {
               token: NON_EXPIRED_TOKEN,
-              user: new UserWithoutPassword(USER_DATA),
+              user: new SerializedUser(USER_DATA),
             },
             { ttl: TOKEN_TTL_IN_SECONDS }
           )

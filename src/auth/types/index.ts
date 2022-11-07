@@ -4,7 +4,7 @@ import {
   AccountConfirmationToken,
   PasswordResetToken,
 } from "@prisma/client"
-import { UserWithoutPassword } from "../../user/types"
+import { SerializedUser } from "../../user/types"
 
 export enum AuthError {
   EmailRequired = "Email is required !",
@@ -40,15 +40,15 @@ export type LoginDto = Pick<User, "email" | "password">
 
 export type CacheSessionData = {
   token: SessionToken
-  user: UserWithoutPassword
+  user: SerializedUser
 }
 
 export type SessionTokenWithoutUserPassword = SessionToken & {
-  user: UserWithoutPassword | undefined
+  user: SerializedUser | undefined
 }
 
 export type Token = SessionToken | AccountConfirmationToken | PasswordResetToken
 
 export type TokenWithoutUserPassword = Token & {
-  user: UserWithoutPassword | undefined
+  user: SerializedUser | undefined
 }

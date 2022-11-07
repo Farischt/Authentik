@@ -1,6 +1,6 @@
 import { User, Role } from "@prisma/client"
 
-export class UserWithoutPassword implements User {
+export class SerializedUser implements User {
   id: number
   email: string
   password: string
