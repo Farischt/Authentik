@@ -1,13 +1,14 @@
 import { Module, CacheModule, Global } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import * as redisStore from "cache-manager-redis-store"
-import type { RedisConfig } from "../config"
+
+import { RedisConfig, Configuration } from "../config"
 import { RedisService } from "./redis.service"
 
 const RedisCacheModule = CacheModule.registerAsync({
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => {
-    const redisConfig = configService.get<RedisConfig>("REDIS")
+    const redisConfig = configService.get<RedisConfig>(Configuration.REDIS)
     return {
       store: redisStore,
       isGlobal: true,
