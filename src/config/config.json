@@ -10,7 +10,7 @@
   },
   "test": {
     "APP_PORT": 3000,
-    "DATABASE_URL": "postgresql://postgres:root@localhost:5432/nest-auth-test?schema=public",
+    "DATABASE_URL": "postgresql://postgres:root@localhost:5432/authentik-test?schema=public",
     "REDIS_HOST": "localhost",
     "REDIS_PORT": "6379",
     "SALT_ROUNDS": 10,
@@ -19,7 +19,7 @@
   },
   "production": {
     "APP_PORT": 3000,
-    "DATABASE_URL": "postgresql://postgres:root@authentik_db:5432/nest-auth-test?schema=public",
+    "DATABASE_URL": "postgresql://postgres:root@authentik_db:5432/nest-auth-prod?schema=public",
     "REDIS_HOST": "authentik_redis",
     "REDIS_PORT": "6379",
     "SALT_ROUNDS": 10,
