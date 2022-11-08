@@ -6,10 +6,12 @@ import {
 } from "@nestjs/common"
 import { Request } from "express"
 import { AuthService } from "../service/auth.service"
+import { TokenService } from "../../token/service/token.service"
+import { AuthError } from "../types"
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly tokenService: TokenService) {}
 
   /**
    * Check if the incoming request has a valid session token
@@ -20,23 +22,16 @@ export class AuthGuard implements CanActivate {
    */
   private async hasUserValidSessionToken(request: Request): Promise<boolean> {
     if (!request.cookies["session-token"])
-      throw new ForbiddenException(
-        "No session cookie found. Please login to continue."
-      )
+      throw new ForbiddenException(AuthError.NoSessionCookie)
 
-    const session = await this.authService.getSessionTokenWithoutUserPassword(
+    const session = await this.tokenService.getSessionTokenWithoutUserPassword(
       { id: request.cookies["session-token"] as string },
       false
     )
 
-    if (!session)
-      throw new ForbiddenException(
-        "You must be authenticated to access this ressource"
-      )
-    else if (!this.authService.isTokenValid(session))
-      throw new ForbiddenException(
-        "Your session has expired. Please login again."
-      )
+    if (!session) throw new ForbiddenException(AuthError.Forbidden)
+    else if (!this.tokenService.isTokenValid(session))
+      throw new ForbiddenException(AuthError.SessionExpired)
 
     return true
   }
@@ -50,7 +45,7 @@ export class AuthGuard implements CanActivate {
    */
   private async hasUserNoSessionToken(request: Request): Promise<boolean> {
     if (request.cookies["session-token"])
-      throw new ForbiddenException("You are already logged in")
+      throw new ForbiddenException(AuthError.AlreadyLoggedIn)
 
     return true
   }

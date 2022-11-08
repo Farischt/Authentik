@@ -1,28 +1,23 @@
 const bcrypt = require("bcryptjs")
 import { Injectable } from "@nestjs/common"
-import {
-  User,
-  AccountConfirmationToken,
-  Prisma,
-  SessionToken,
-} from "@prisma/client"
+import { ConfigService } from "@nestjs/config"
+import { User, Prisma, SessionToken } from "@prisma/client"
 import { Response, Request } from "express"
 
+import { TokenService } from "../../token/service/token.service"
 import { RedisService } from "../../cache/redis.service"
-import { PrismaService } from "../../database/prisma.service"
 import { UserService } from "../../user/service/user.service"
 import { CreateUserDto, SerializedUser } from "../../user/types"
-import { CacheSessionData, Token, TokenWithoutUserPassword } from "../types"
+import { Configuration } from "../../config"
+import { CacheSessionData } from "../types"
 
 @Injectable()
 export class AuthService {
-  private readonly SALT_ROUNDS = 10
-  private readonly SESSION_TOKEN_EXPIRATION = 60 * 60 // 1 hour in seconds
-
   constructor(
-    private readonly prisma: PrismaService,
     private readonly userService: UserService,
-    private redis: RedisService
+    private readonly tokenService: TokenService,
+    private redis: RedisService,
+    private configService: ConfigService
   ) {}
 
   /**
@@ -67,10 +62,6 @@ export class AuthService {
     return user.isVerified
   }
 
-  /* -------------------------------------------------------------------------- */
-  /*                             Password management                            */
-  /* -------------------------------------------------------------------------- */
-
   /**
    * Check if the password is long enough
    *
@@ -98,7 +89,12 @@ export class AuthService {
    * @returns The hashed password
    */
   public async hashPassword(password: User["password"]): Promise<string> {
-    return await bcrypt.hash(password, await bcrypt.genSalt(this.SALT_ROUNDS))
+    return await bcrypt.hash(
+      password,
+      await bcrypt.genSalt(
+        this.configService.get(Configuration.AUTH_SALT_ROUNDS)
+      )
+    )
   }
 
   /**
@@ -113,86 +109,6 @@ export class AuthService {
     hash: string
   ): Promise<boolean> {
     return await bcrypt.compare(password, hash)
-  }
-
-  /* -------------------------------------------------------------------------- */
-  /*                             Token management                               */
-  /* -------------------------------------------------------------------------- */
-
-  /**
-   * Check token validity (expiration date)
-   *
-   * @param token The token to check
-   * @returns true if the token is valid, false if not
-   */
-  public isTokenValid(token: Token): boolean {
-    const tokenCreationDate = new Date(token.createdAt)
-    const tokenExpirationDate = new Date(
-      tokenCreationDate.getTime() + this.SESSION_TOKEN_EXPIRATION * 1000
-    )
-    return tokenExpirationDate > new Date()
-  }
-
-  /* -------------------------------------------------------------------------- */
-  /*                                Session                                     */
-  /* -------------------------------------------------------------------------- */
-
-  /**
-   * Retrieve a session token by its unique input
-   *
-   * @param sessionTokenWhereUniqueInput the token's unique input (id)
-   * @param includeUser true if the user should be included in the result, false if not
-   * @returns The session token including the user or not
-   */
-  public async getSessionTokenWithoutUserPassword(
-    sessionTokenWhereUniqueInput: Prisma.SessionTokenWhereUniqueInput,
-    includeUser = true
-  ): Promise<TokenWithoutUserPassword> {
-    const sessionToken = await this.prisma.sessionToken.findUnique({
-      where: sessionTokenWhereUniqueInput,
-      include: {
-        user: includeUser,
-      },
-    })
-
-    if (!sessionToken) return null
-    else if (includeUser && sessionToken.user)
-      return {
-        ...sessionToken,
-        user: new SerializedUser(sessionToken.user),
-      }
-
-    return sessionToken
-  }
-
-  /**
-   * Create a new session token
-   *
-   * @param userId The user's id
-   * @param ipAddr The user's ip address
-   * @returns The created session token
-   */
-  public async createSessionToken(
-    userId: User["id"],
-    ipAddr: string
-  ): Promise<SessionToken> {
-    return await this.prisma.sessionToken.create({
-      data: { user: { connect: { id: userId } }, ipAddr },
-    })
-  }
-
-  /**
-   * Delete a session token
-   *
-   * @param sessionTokenWhereUniqueInput The session token's unique input (id)
-   * @returns The deleted session token
-   */
-  private async deleteSessionToken(
-    sessionTokenWhereUniqueInput: Prisma.SessionTokenWhereUniqueInput
-  ): Promise<SessionToken | null> {
-    return await this.prisma.sessionToken.delete({
-      where: sessionTokenWhereUniqueInput,
-    })
   }
 
   /**
@@ -223,12 +139,11 @@ export class AuthService {
         user: new SerializedUser(user),
       },
       {
-        ttl: this.SESSION_TOKEN_EXPIRATION,
+        ttl: this.configService.get(Configuration.AUTH_TOKEN_TTL_IN_SECONDS),
       }
     )
     res.cookie("session-token", token.id, {
-      // 1 hour in ms
-      maxAge: this.SESSION_TOKEN_EXPIRATION * 1000,
+      maxAge: this.configService.get(Configuration.AUTH_TOKEN_TTL_IN_MS),
       httpOnly: true,
     })
   }
@@ -272,7 +187,7 @@ export class AuthService {
   private async getAuthenticatedUserFromDb(
     req: Request
   ): Promise<SerializedUser> {
-    const session = await this.getSessionTokenWithoutUserPassword({
+    const session = await this.tokenService.getSessionTokenWithoutUserPassword({
       id: this.getSessionCookie(req),
     })
     if (!session) return null
@@ -292,52 +207,6 @@ export class AuthService {
     )
   }
 
-  /* -------------------------------------------------------------------------- */
-  /*                            Account Confirmation                            */
-  /* -------------------------------------------------------------------------- */
-
-  /**
-   * Retrieve an account confirmation token by its unique input (id or userId)
-   *
-   * @param accountConfirmationTokenWhereUniqueInput The account confirmation token's unique input (id or userId)
-   * @returns The account confirmation token
-   */
-  public async getAccountConfirmationToken(
-    accountConfirmationTokenWhereUniqueInput: Prisma.AccountConfirmationTokenWhereUniqueInput
-  ): Promise<AccountConfirmationToken> {
-    return await this.prisma.accountConfirmationToken.findUnique({
-      where: accountConfirmationTokenWhereUniqueInput,
-    })
-  }
-
-  /**
-   * Create a new account confirmation token
-   *
-   * @param userId The user id to connect to
-   * @returns The created account confirmation token
-   */
-  public async createAccountConfirmationToken(
-    userId: User["id"]
-  ): Promise<AccountConfirmationToken> {
-    return await this.prisma.accountConfirmationToken.create({
-      data: { user: { connect: { id: userId } } },
-    })
-  }
-
-  /**
-   * Delete an account confirmation token
-   *
-   * @param accountConfirmationTokenWhereUniqueInput The account confirmation token's unique input (id or userId)
-   * @returns The deleted account confirmation token
-   */
-  private async deleteAccountConfirmationToken(
-    accountConfirmationTokenWhereUniqueInput: Prisma.AccountConfirmationTokenWhereUniqueInput
-  ): Promise<AccountConfirmationToken> {
-    return await this.prisma.accountConfirmationToken.delete({
-      where: accountConfirmationTokenWhereUniqueInput,
-    })
-  }
-
   /**
    * Verify the user's account and delete the account confirmation token
    *
@@ -349,7 +218,19 @@ export class AuthService {
       { id: userId },
       { isVerified: true }
     )
-    await this.deleteAccountConfirmationToken({ userId })
+    await this.tokenService.deleteAccountConfirmationToken({ userId })
     return user
+  }
+
+  /**
+   * Logout the current authenticated user
+   *
+   * @param req The request
+   * @param res The response
+   */
+  public async logout(req: Request, res: Response): Promise<void> {
+    const sessionCookie = this.getSessionCookie(req)
+    await this.removeSessionCookie(res, sessionCookie)
+    await this.tokenService.deleteSessionToken({ id: sessionCookie })
   }
 }

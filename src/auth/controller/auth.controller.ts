@@ -1,37 +1,44 @@
 import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpException,
-  InternalServerErrorException,
-  NotFoundException,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
   Req,
   Res,
+  Body,
+  Param,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  BadRequestException,
+  NotFoundException,
+  ParseUUIDPipe,
   UseGuards,
 } from "@nestjs/common"
 import { Request, Response } from "express"
 
 import { CreateUserDto, SerializedUser } from "../../user/types"
 import { AuthGuard } from "../guard/auth.guard"
-import { RegistrationPipe } from "../pipe/registration.pipe"
-import { LoginPipe } from "../pipe/login.pipe"
+import { RegisterValidationPipe } from "../pipe/registration.pipe"
+import { LoginValidationPipe } from "../pipe/login.pipe"
 import { AuthService } from "../service/auth.service"
-import { LoginDto, AuthError, AuthConfirmAcountResponseType } from "../types"
+import { TokenService } from "../../token/service/token.service"
+import { LoginDto, AuthConfirmAcountResponseType, AuthError } from "../types"
 
 @UseGuards(AuthGuard)
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly tokenService: TokenService
+  ) {}
 
+  /**
+   * Route to register a new user
+   *
+   * @param input Registration data
+   * @returns Serialized user
+   */
   @Post("register")
   async register(
-    @Body(RegistrationPipe) input: CreateUserDto
+    @Body(RegisterValidationPipe) input: CreateUserDto
   ): Promise<SerializedUser> {
     const { email, password, firstName, lastName } = input
     const hashedPassword = await this.authService.hashPassword(password)
@@ -41,26 +48,25 @@ export class AuthController {
       firstName,
       lastName,
     })
-    await this.authService.createAccountConfirmationToken(user.id)
-
+    await this.tokenService.createAccountConfirmationToken(user.id)
     return user
   }
 
+  /**
+   * Route to confirm a user email and account
+   *
+   * @param token the token id
+   * @returns the user email with a success message
+   */
   @Patch("confirm-account/:token")
-  @HttpCode(204)
   async confirmAccount(
     @Param("token", ParseUUIDPipe) token: string
   ): Promise<AuthConfirmAcountResponseType> {
     const accountConfirmationToken =
-      await this.authService.getAccountConfirmationToken({ id: token })
-
+      await this.tokenService.getAccountConfirmationToken({ id: token })
     if (!accountConfirmationToken)
-      throw new BadRequestException("Invalid account confirmation token !")
-
-    /* Removed in order to avoid case when user didn't confirm account whiting token expiration time
-      if (!this.authService.isTokenValid(accountConfirmationToken))
-      throw new BadRequestException("Account confirmation token expired !") */
-
+      throw new BadRequestException(AuthError.InvalidToken)
+    // Since the confirm account delete the account token, this condition is never reached if a user is already verified
     if (
       this.authService.isUserVerified(
         await this.authService.getUser({
@@ -68,40 +74,43 @@ export class AuthController {
         })
       )
     )
-      throw new BadRequestException("Account already confirmed !")
-
+      throw new BadRequestException(AuthError.AlreadyConfirmed)
     /** This update the user and delete the token */
     const user = await this.authService.confirmAccount(
       accountConfirmationToken.userId
     )
     if (!user) throw new NotFoundException("Couldn't confirm account !")
-
     return {
       message: "Successfully confirmed your email ",
       email: user.email,
     }
   }
 
+  /**
+   * Route to login a user
+   *
+   * @param input email and password
+   * @param req the request
+   * @param res the response
+   */
   @Post("login")
   async login(
-    @Body(LoginPipe) input: LoginDto,
+    @Body(LoginValidationPipe) input: LoginDto,
     @Req() req: Request,
     @Res() res: Response
   ): Promise<void> {
     const { email, password } = input
     // Check if user exists
     const user = await this.authService.getUser({ email })
-    if (!user) throw new BadRequestException("Invalid credentials !")
+    if (!user) throw new BadRequestException(AuthError.InvalidCredentials)
     else if (!this.authService.isUserVerified(user)) {
-      throw new BadRequestException("Invalid credentials !")
+      throw new BadRequestException(AuthError.InvalidCredentials)
     }
-
     // Check if password is correct
     if (!(await this.authService.comparePassword(password, user.password)))
-      throw new BadRequestException("Invalid credentials !")
-
+      throw new BadRequestException(AuthError.InvalidCredentials)
     // Create session token
-    const sessionToken = await this.authService.createSessionToken(
+    const sessionToken = await this.tokenService.createSessionToken(
       user.id,
       req.ip
     )
@@ -109,10 +118,28 @@ export class AuthController {
     res.status(201).json({ message: "Logged in", loggedIn: true })
   }
 
+  /**
+   * Route to get the authenticated user
+   *
+   * @param req the request
+   * @returns the authenticated serialized user
+   */
   @Get("user")
   async getAuthenticatedUser(@Req() req: Request): Promise<SerializedUser> {
     const user = await this.authService.getAuthenticatedUser(req)
-    if (!user) throw new NotFoundException("Couldn't find authenticated user !")
+    if (!user) throw new NotFoundException(AuthError.UserNotFound)
     return user
+  }
+
+  /**
+   * Route to logout a user
+   *
+   * @param req the request
+   * @param res the response
+   */
+  @Post("logout")
+  async logout(@Req() req: Request, @Res() res: Response): Promise<void> {
+    await this.authService.logout(req, res)
+    res.status(200).json({ message: "Logged out", loggedIn: false })
   }
 }

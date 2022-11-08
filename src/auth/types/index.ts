@@ -1,9 +1,4 @@
-import {
-  User,
-  SessionToken,
-  AccountConfirmationToken,
-  PasswordResetToken,
-} from "@prisma/client"
+import { User, SessionToken } from "@prisma/client"
 import { SerializedUser } from "../../user/types"
 
 export enum AuthError {
@@ -16,6 +11,13 @@ export enum AuthError {
   PasswordRequired = "Password is required !",
   PasswordNotLong = "Password must be at least 8 characters long !",
   PasswordNotStrong = "Password must be alphanumeric and contains a special character !",
+  AlreadyLoggedIn = "Your session has expired. Please login again.",
+  AlreadyConfirmed = "Your account is already confirmed !",
+  SessionExpired = "Your session has expired. Please login again.",
+  NoSessionCookie = "No session cookie found. Please login to continue.",
+  Forbidden = "You must be authenticated to access this ressource",
+  UserNotFound = "Couldn't find authenticated user !",
+  InvalidToken = "Invalid token",
   Unknown = "Something went wrong !",
 }
 
@@ -41,14 +43,4 @@ export type LoginDto = Pick<User, "email" | "password">
 export type CacheSessionData = {
   token: SessionToken
   user: SerializedUser
-}
-
-export type SessionTokenWithoutUserPassword = SessionToken & {
-  user: SerializedUser | undefined
-}
-
-export type Token = SessionToken | AccountConfirmationToken | PasswordResetToken
-
-export type TokenWithoutUserPassword = Token & {
-  user: SerializedUser | undefined
 }

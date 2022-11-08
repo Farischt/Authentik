@@ -1,17 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing"
+import { Request, Response } from "express"
 
 import { RedisModule } from "../../cache/redis.module"
 import { AuthService } from "./auth.service"
 import { PrismaModule } from "../../database/prisma.module"
 import { ConfigurationModule as ConfigModule } from "../../config/config.module"
 import { UserService } from "../../user/service/user.service"
+import { TokenService } from "../../token/service/token.service"
 
 import { Role, User, SessionToken } from "@prisma/client"
 import { RedisService } from "../../cache/redis.service"
 import { CreateUserDto, SerializedUser } from "../../user/types"
 import { PrismaService } from "../../database/prisma.service"
-import { SessionTokenWithoutUserPassword } from "../types"
-import { Request, Response } from "express"
+import { SessionTokenWithoutUserPassword } from "../../token/types"
 
 const TOKEN_TTL_IN_SECONDS = 60 * 60
 const TOKEN_TTL_IN_MS = TOKEN_TTL_IN_SECONDS * 1000 // 3600000
@@ -77,21 +78,19 @@ describe("AuthService", () => {
   let userService: UserService
   let redisService: RedisService
   let prismaService: PrismaService
+  let tokenService: TokenService
 
   beforeAll(async () => {
     const app: TestingModule = await Test.createTestingModule({
       imports: [PrismaModule, ConfigModule, RedisModule],
-      providers: [AuthService, UserService],
+      providers: [AuthService, UserService, TokenService],
     }).compile()
 
     authService = app.get<AuthService>(AuthService)
     userService = app.get<UserService>(UserService)
     redisService = app.get<RedisService>(RedisService)
     prismaService = app.get<PrismaService>(PrismaService)
-  })
-
-  beforeEach(() => {
-    jest.clearAllMocks()
+    tokenService = app.get<TokenService>(TokenService)
   })
 
   afterAll(async () => {
@@ -194,159 +193,146 @@ describe("AuthService", () => {
     })
   })
 
-  describe("Token management", () => {
-    describe("Token expiration", () => {
-      it("should not be expired", async () => {
-        const isValid = authService.isTokenValid(NON_EXPIRED_TOKEN)
-        expect(isValid).toBe(true)
-      })
+  // describe("Token management", () => {
+  //   describe("Token expiration", () => {
+  //     it("should not be expired", async () => {
+  //       const isValid = authService.isTokenValid(NON_EXPIRED_TOKEN)
+  //       expect(isValid).toBe(true)
+  //     })
 
-      it("should be expired", () => {
-        const isValid = authService.isTokenValid(EXPIRED_TOKEN)
-        expect(isValid).toBe(false)
-      })
+  //     it("should be expired", () => {
+  //       const isValid = authService.isTokenValid(EXPIRED_TOKEN)
+  //       expect(isValid).toBe(false)
+  //     })
+  //   })
+
+  // it("should get a session token containing its user ", async () => {
+  //   jest
+  //     .spyOn(prismaService.sessionToken, "findUnique")
+  //     .mockResolvedValue(SESSION_TOKEN_WITH_USER)
+  //   const token = await authService.getSessionTokenWithoutUserPassword({
+  //     id: NON_EXPIRED_TOKEN.id,
+  //   })
+  //   expect(token).toEqual(SESSION_TOKEN_WITH_USER)
+  // })
+
+  //   it("should get a session token without the user", async () => {
+  //     jest
+  //       .spyOn(prismaService.sessionToken, "findUnique")
+  //       .mockResolvedValue(NON_EXPIRED_TOKEN)
+  //     const token = await authService.getSessionTokenWithoutUserPassword(
+  //       {
+  //         id: NON_EXPIRED_TOKEN.id,
+  //       },
+  //       false
+  //     )
+  //     expect(token).toEqual(NON_EXPIRED_TOKEN)
+  //   })
+  // })
+
+  // it("should create a session token", async () => {
+  //   jest
+  //     .spyOn(prismaService.sessionToken, "create")
+  //     .mockResolvedValue(NON_EXPIRED_TOKEN)
+  //   const token = await authService.createSessionToken(
+  //     USER_DATA.id,
+  //     "127.0.0.1"
+  //   )
+  //   expect(token).toEqual(NON_EXPIRED_TOKEN)
+  // })
+
+  describe("Cookies", () => {
+    it("should get the session cookie", () => {
+      const requestMock = {
+        cookies: {
+          [SESSION_COOKIE_NAME]: NON_EXPIRED_TOKEN.id,
+        },
+      } as unknown as Request
+      const token = authService.getSessionCookie(requestMock)
+      expect(token).toEqual(NON_EXPIRED_TOKEN.id)
     })
 
-    describe("Session token", () => {
-      describe("Get session token", () => {
-        it("should get a session token containing its user ", async () => {
-          jest
-            .spyOn(prismaService.sessionToken, "findUnique")
-            .mockResolvedValue(SESSION_TOKEN_WITH_USER)
-          const token = await authService.getSessionTokenWithoutUserPassword({
-            id: NON_EXPIRED_TOKEN.id,
-          })
-          expect(token).toEqual(SESSION_TOKEN_WITH_USER)
-        })
-
-        it("should get a session token without the user", async () => {
-          jest
-            .spyOn(prismaService.sessionToken, "findUnique")
-            .mockResolvedValue(NON_EXPIRED_TOKEN)
-          const token = await authService.getSessionTokenWithoutUserPassword(
-            {
-              id: NON_EXPIRED_TOKEN.id,
-            },
-            false
-          )
-          expect(token).toEqual(NON_EXPIRED_TOKEN)
-        })
-      })
-
-      it("should create a session token", async () => {
-        jest
-          .spyOn(prismaService.sessionToken, "create")
-          .mockResolvedValue(NON_EXPIRED_TOKEN)
-        const token = await authService.createSessionToken(
-          USER_DATA.id,
-          "127.0.0.1"
-        )
-        expect(token).toEqual(NON_EXPIRED_TOKEN)
-      })
-
-      describe("Cookies", () => {
-        it("should get the session cookie", () => {
-          const requestMock = {
-            cookies: {
-              [SESSION_COOKIE_NAME]: NON_EXPIRED_TOKEN.id,
-            },
-          } as unknown as Request
-          const token = authService.getSessionCookie(requestMock)
-          expect(token).toEqual(NON_EXPIRED_TOKEN.id)
-        })
-
-        it("should set the session cookie", async () => {
-          const cacheSetMethod = jest
-            .spyOn(redisService, "set")
-            .mockResolvedValue()
-          const responseMock = {
-            cookie: jest.fn(),
-          } as unknown as Response
-          await authService.setSessionCookie(
-            responseMock,
-            NON_EXPIRED_TOKEN,
-            USER_DATA
-          )
-          expect(cacheSetMethod).toHaveBeenCalledWith(
-            NON_EXPIRED_TOKEN.id,
-            {
-              token: NON_EXPIRED_TOKEN,
-              user: new SerializedUser(USER_DATA),
-            },
-            { ttl: TOKEN_TTL_IN_SECONDS }
-          )
-          expect(responseMock.cookie).toHaveBeenCalledWith(
-            SESSION_COOKIE_NAME,
-            NON_EXPIRED_TOKEN.id,
-            {
-              httpOnly: true,
-              maxAge: TOKEN_TTL_IN_MS,
-            }
-          )
-        })
-
-        it("should remove the session cookie", async () => {
-          const cacheRemoveMethod = jest.spyOn(redisService, "del")
-          const responseMock = {
-            clearCookie: jest.fn(),
-          } as unknown as Response
-          await authService.removeSessionCookie(
-            responseMock,
-            NON_EXPIRED_TOKEN.id
-          )
-          expect(cacheRemoveMethod).toHaveBeenCalledWith(NON_EXPIRED_TOKEN.id)
-          expect(responseMock.clearCookie).toHaveBeenCalledWith(
-            SESSION_COOKIE_NAME
-          )
-        })
-      })
+    it("should set the session cookie", async () => {
+      const cacheSetMethod = jest.spyOn(redisService, "set").mockResolvedValue()
+      const responseMock = {
+        cookie: jest.fn(),
+      } as unknown as Response
+      await authService.setSessionCookie(
+        responseMock,
+        NON_EXPIRED_TOKEN,
+        USER_DATA
+      )
+      expect(cacheSetMethod).toHaveBeenCalledWith(
+        NON_EXPIRED_TOKEN.id,
+        {
+          token: NON_EXPIRED_TOKEN,
+          user: new SerializedUser(USER_DATA),
+        },
+        { ttl: TOKEN_TTL_IN_SECONDS }
+      )
+      expect(responseMock.cookie).toHaveBeenCalledWith(
+        SESSION_COOKIE_NAME,
+        NON_EXPIRED_TOKEN.id,
+        {
+          httpOnly: true,
+          maxAge: TOKEN_TTL_IN_MS,
+        }
+      )
     })
 
-    describe("Account confirmation token", () => {
-      it("should get an account confirmation token", async () => {
-        const dbCreate = jest
-          .spyOn(prismaService.accountConfirmationToken, "findUnique")
-          .mockResolvedValue(NON_EXPIRED_TOKEN)
-        const token = await authService.getAccountConfirmationToken({
-          id: NON_EXPIRED_TOKEN.id,
-        })
-        expect(dbCreate).toHaveBeenCalledWith({
-          where: { id: NON_EXPIRED_TOKEN.id },
-        })
-        expect(token).toEqual(NON_EXPIRED_TOKEN)
-      })
-
-      it("should create an account confirmation token", async () => {
-        const dbCreate = jest
-          .spyOn(prismaService.accountConfirmationToken, "create")
-          .mockResolvedValue(NON_EXPIRED_TOKEN)
-        const token = await authService.createAccountConfirmationToken(
-          USER_DATA.id
-        )
-        expect(dbCreate).toHaveBeenCalledWith({
-          data: { user: { connect: { id: USER_DATA.id } } },
-        })
-        expect(token).toEqual(NON_EXPIRED_TOKEN)
-      })
-
-      it("should confirm an account", async () => {
-        const dbDelete = jest
-          .spyOn(prismaService.accountConfirmationToken, "delete")
-          .mockResolvedValue(NON_EXPIRED_TOKEN)
-        const dbUpdate = jest
-          .spyOn(prismaService.user, "update")
-          .mockResolvedValue(USER_DATA)
-        const user = await authService.confirmAccount(USER_DATA.id)
-        expect(dbDelete).toHaveBeenCalledWith({
-          where: { userId: USER_DATA.id },
-        })
-        expect(dbUpdate).toHaveBeenCalledWith({
-          where: { id: USER_DATA.id },
-          data: { isVerified: true },
-        })
-        expect(user).toEqual(USER_DATA)
-      })
+    it("should remove the session cookie", async () => {
+      const cacheRemoveMethod = jest.spyOn(redisService, "del")
+      const responseMock = {
+        clearCookie: jest.fn(),
+      } as unknown as Response
+      await authService.removeSessionCookie(responseMock, NON_EXPIRED_TOKEN.id)
+      expect(cacheRemoveMethod).toHaveBeenCalledWith(NON_EXPIRED_TOKEN.id)
+      expect(responseMock.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME)
     })
+  })
+
+  // it("should get an account confirmation token", async () => {
+  //   const dbCreate = jest
+  //     .spyOn(prismaService.accountConfirmationToken, "findUnique")
+  //     .mockResolvedValue(NON_EXPIRED_TOKEN)
+  //   const token = await authService.getAccountConfirmationToken({
+  //     id: NON_EXPIRED_TOKEN.id,
+  //   })
+  //   expect(dbCreate).toHaveBeenCalledWith({
+  //     where: { id: NON_EXPIRED_TOKEN.id },
+  //   })
+  //   expect(token).toEqual(NON_EXPIRED_TOKEN)
+  // })
+
+  // it("should create an account confirmation token", async () => {
+  //   const dbCreate = jest
+  //     .spyOn(prismaService.accountConfirmationToken, "create")
+  //     .mockResolvedValue(NON_EXPIRED_TOKEN)
+  //   const token = await authService.createAccountConfirmationToken(
+  //     USER_DATA.id
+  //   )
+  //   expect(dbCreate).toHaveBeenCalledWith({
+  //     data: { user: { connect: { id: USER_DATA.id } } },
+  //   })
+  //   expect(token).toEqual(NON_EXPIRED_TOKEN)
+  // })
+
+  it("should confirm an account", async () => {
+    const dbDelete = jest
+      .spyOn(prismaService.accountConfirmationToken, "delete")
+      .mockResolvedValue(NON_EXPIRED_TOKEN)
+    const dbUpdate = jest
+      .spyOn(prismaService.user, "update")
+      .mockResolvedValue(USER_DATA)
+    const user = await authService.confirmAccount(USER_DATA.id)
+    expect(dbDelete).toHaveBeenCalledWith({
+      where: { userId: USER_DATA.id },
+    })
+    expect(dbUpdate).toHaveBeenCalledWith({
+      where: { id: USER_DATA.id },
+      data: { isVerified: true },
+    })
+    expect(user).toEqual(USER_DATA)
   })
 
   describe("User management", () => {

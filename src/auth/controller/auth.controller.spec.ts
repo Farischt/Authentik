@@ -5,6 +5,7 @@ import { PrismaModule } from "../../database/prisma.module"
 import { AuthService } from "../../auth/service/auth.service"
 import { ConfigurationModule as ConfigModule } from "../../config/config.module"
 import { UserService } from "../../user/service/user.service"
+import { TokenService } from "../../token/service/token.service"
 
 describe("AuthController", () => {
   let controller: AuthController
@@ -12,7 +13,7 @@ describe("AuthController", () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       imports: [ConfigModule, RedisModule, PrismaModule],
-      providers: [AuthService, UserService],
+      providers: [AuthService, UserService, TokenService],
       controllers: [AuthController],
     }).compile()
 
