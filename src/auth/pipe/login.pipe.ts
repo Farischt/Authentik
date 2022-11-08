@@ -4,7 +4,7 @@ import { AuthService } from "../service/auth.service"
 import { AuthError } from "../types"
 
 @Injectable()
-export class LoginPipe implements PipeTransform {
+export class LoginValidationPipe implements PipeTransform {
   constructor(private readonly authService: AuthService) {}
 
   async transform(input: LoginDto) {

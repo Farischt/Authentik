@@ -1,10 +1,15 @@
-import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common"
+import {
+  PipeTransform,
+  Injectable,
+  ValidationPipe,
+  BadRequestException,
+} from "@nestjs/common"
 import { CreateUserDto } from "../../user/types"
 import { AuthService } from "../service/auth.service"
 import { AuthError } from "../types"
 
 @Injectable()
-export class RegistrationPipe implements PipeTransform {
+export class RegisterValidationPipe implements PipeTransform {
   constructor(private readonly authService: AuthService) {}
 
   async transform(input: CreateUserDto) {
