@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
    * @returns true if the session token is valid
    * @throws ForbiddenException otherwise
    */
-  private async hasUserValidSessionToken(request: Request): Promise<boolean> {
+  public async hasUserValidSessionToken(request: Request): Promise<boolean> {
     if (!request.cookies["session-token"])
       throw new ForbiddenException(AuthError.NoSessionCookie)
 
@@ -42,14 +42,14 @@ export class AuthGuard implements CanActivate {
    * @returns true if the incoming request has no session token
    * @throws ForbiddenException otherwise
    */
-  private async hasUserNoSessionToken(request: Request): Promise<boolean> {
+  public async hasUserNoSessionToken(request: Request): Promise<boolean> {
     if (request.cookies["session-token"])
       throw new ForbiddenException(AuthError.AlreadyLoggedIn)
 
     return true
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  public async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>()
     if (
       request.url === "/auth/login" ||
