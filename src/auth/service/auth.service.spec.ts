@@ -7,11 +7,11 @@ import { PrismaModule } from "../../database/prisma.module"
 import { ConfigurationModule as ConfigModule } from "../../config/config.module"
 import { UserService } from "../../user/service/user.service"
 import { TokenService } from "../../token/service/token.service"
+import { RedisService } from "../../cache/redis.service"
+import { PrismaService } from "../../database/prisma.service"
 
 import { Role, User, SessionToken } from "@prisma/client"
-import { RedisService } from "../../cache/redis.service"
 import { CreateUserDto, SerializedUser } from "../../user/types"
-import { PrismaService } from "../../database/prisma.service"
 import { SessionTokenWithoutUserPassword } from "../../token/types"
 
 const TOKEN_TTL_IN_SECONDS = 60 * 60
@@ -53,13 +53,6 @@ const NON_EXPIRED_TOKEN: SessionToken = {
   createdAt: new Date(),
   updatedAt: new Date(),
 }
-const EXPIRED_TOKEN: SessionToken = {
-  id: "dc9151cf-c0b6-408c-9c8c-03e2da196c56",
-  userId: 1,
-  ipAddr: IP_ADDRESS,
-  createdAt: new Date(Date.now() - TOKEN_TTL_IN_MS),
-  updatedAt: new Date(Date.now() - TOKEN_TTL_IN_MS),
-}
 
 const SESSION_TOKEN_WITH_USER: SessionTokenWithoutUserPassword = {
   ...NON_EXPIRED_TOKEN,
@@ -78,7 +71,6 @@ describe("AuthService", () => {
   let userService: UserService
   let redisService: RedisService
   let prismaService: PrismaService
-  let tokenService: TokenService
 
   beforeAll(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -90,7 +82,6 @@ describe("AuthService", () => {
     userService = app.get<UserService>(UserService)
     redisService = app.get<RedisService>(RedisService)
     prismaService = app.get<PrismaService>(PrismaService)
-    tokenService = app.get<TokenService>(TokenService)
   })
 
   afterAll(async () => {
@@ -193,54 +184,6 @@ describe("AuthService", () => {
     })
   })
 
-  // describe("Token management", () => {
-  //   describe("Token expiration", () => {
-  //     it("should not be expired", async () => {
-  //       const isValid = authService.isTokenValid(NON_EXPIRED_TOKEN)
-  //       expect(isValid).toBe(true)
-  //     })
-
-  //     it("should be expired", () => {
-  //       const isValid = authService.isTokenValid(EXPIRED_TOKEN)
-  //       expect(isValid).toBe(false)
-  //     })
-  //   })
-
-  // it("should get a session token containing its user ", async () => {
-  //   jest
-  //     .spyOn(prismaService.sessionToken, "findUnique")
-  //     .mockResolvedValue(SESSION_TOKEN_WITH_USER)
-  //   const token = await authService.getSessionTokenWithoutUserPassword({
-  //     id: NON_EXPIRED_TOKEN.id,
-  //   })
-  //   expect(token).toEqual(SESSION_TOKEN_WITH_USER)
-  // })
-
-  //   it("should get a session token without the user", async () => {
-  //     jest
-  //       .spyOn(prismaService.sessionToken, "findUnique")
-  //       .mockResolvedValue(NON_EXPIRED_TOKEN)
-  //     const token = await authService.getSessionTokenWithoutUserPassword(
-  //       {
-  //         id: NON_EXPIRED_TOKEN.id,
-  //       },
-  //       false
-  //     )
-  //     expect(token).toEqual(NON_EXPIRED_TOKEN)
-  //   })
-  // })
-
-  // it("should create a session token", async () => {
-  //   jest
-  //     .spyOn(prismaService.sessionToken, "create")
-  //     .mockResolvedValue(NON_EXPIRED_TOKEN)
-  //   const token = await authService.createSessionToken(
-  //     USER_DATA.id,
-  //     "127.0.0.1"
-  //   )
-  //   expect(token).toEqual(NON_EXPIRED_TOKEN)
-  // })
-
   describe("Cookies", () => {
     it("should get the session cookie", () => {
       const requestMock = {
@@ -290,32 +233,6 @@ describe("AuthService", () => {
       expect(responseMock.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME)
     })
   })
-
-  // it("should get an account confirmation token", async () => {
-  //   const dbCreate = jest
-  //     .spyOn(prismaService.accountConfirmationToken, "findUnique")
-  //     .mockResolvedValue(NON_EXPIRED_TOKEN)
-  //   const token = await authService.getAccountConfirmationToken({
-  //     id: NON_EXPIRED_TOKEN.id,
-  //   })
-  //   expect(dbCreate).toHaveBeenCalledWith({
-  //     where: { id: NON_EXPIRED_TOKEN.id },
-  //   })
-  //   expect(token).toEqual(NON_EXPIRED_TOKEN)
-  // })
-
-  // it("should create an account confirmation token", async () => {
-  //   const dbCreate = jest
-  //     .spyOn(prismaService.accountConfirmationToken, "create")
-  //     .mockResolvedValue(NON_EXPIRED_TOKEN)
-  //   const token = await authService.createAccountConfirmationToken(
-  //     USER_DATA.id
-  //   )
-  //   expect(dbCreate).toHaveBeenCalledWith({
-  //     data: { user: { connect: { id: USER_DATA.id } } },
-  //   })
-  //   expect(token).toEqual(NON_EXPIRED_TOKEN)
-  // })
 
   it("should confirm an account", async () => {
     const dbDelete = jest
