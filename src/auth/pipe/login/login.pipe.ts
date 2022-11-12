@@ -1,7 +1,7 @@
 import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common"
-import { LoginDto } from "../types"
-import { AuthService } from "../service/auth.service"
-import { AuthError } from "../types"
+import { LoginDto } from "../../types"
+import { AuthService } from "../../service/auth.service"
+import { AuthError } from "../../types"
 
 @Injectable()
 export class LoginValidationPipe implements PipeTransform {

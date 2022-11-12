@@ -1,12 +1,7 @@
-import {
-  PipeTransform,
-  Injectable,
-  ValidationPipe,
-  BadRequestException,
-} from "@nestjs/common"
-import { CreateUserDto } from "../../user/types"
-import { AuthService } from "../service/auth.service"
-import { AuthError } from "../types"
+import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common"
+import { CreateUserDto } from "../../../user/types"
+import { AuthService } from "../../service/auth.service"
+import { AuthError } from "../../types"
 
 @Injectable()
 export class RegisterValidationPipe implements PipeTransform {
