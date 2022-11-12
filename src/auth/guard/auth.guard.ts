@@ -5,7 +5,6 @@ import {
   ForbiddenException,
 } from "@nestjs/common"
 import { Request } from "express"
-import { AuthService } from "../service/auth.service"
 import { TokenService } from "../../token/service/token.service"
 import { AuthError } from "../types"
 

@@ -4,7 +4,6 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  ForbiddenException,
 } from "@nestjs/common"
 import { HttpAdapterHost } from "@nestjs/core"
 

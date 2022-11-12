@@ -16,8 +16,8 @@ import { Request, Response } from "express"
 
 import { CreateUserDto, SerializedUser } from "../../user/types"
 import { AuthGuard } from "../guard/auth.guard"
-import { RegisterValidationPipe } from "../pipe/registration.pipe"
-import { LoginValidationPipe } from "../pipe/login.pipe"
+import { RegisterValidationPipe } from "../pipe/register/registration.pipe"
+import { LoginValidationPipe } from "../pipe/login/login.pipe"
 import { AuthService } from "../service/auth.service"
 import { TokenService } from "../../token/service/token.service"
 import { LoginDto, AuthConfirmAcountResponseType, AuthError } from "../types"
@@ -49,7 +49,7 @@ export class AuthController {
       lastName,
     })
     await this.tokenService.createAccountConfirmationToken(user.id)
-    return user
+    return new SerializedUser(user)
   }
 
   /**
@@ -67,14 +67,14 @@ export class AuthController {
     if (!accountConfirmationToken)
       throw new BadRequestException(AuthError.InvalidToken)
     // Since the confirm account delete the account token, this condition is never reached if a user is already verified
-    if (
-      this.authService.isUserVerified(
-        await this.authService.getUser({
-          id: accountConfirmationToken.userId,
-        })
-      )
-    )
-      throw new BadRequestException(AuthError.AlreadyConfirmed)
+    // if (
+    //   this.authService.isUserVerified(
+    //     await this.authService.getUser({
+    //       id: accountConfirmationToken.userId,
+    //     })
+    //   )
+    // )
+    //   throw new BadRequestException(AuthError.AlreadyConfirmed)
     /** This update the user and delete the token */
     const user = await this.authService.confirmAccount(
       accountConfirmationToken.userId

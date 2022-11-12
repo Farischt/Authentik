@@ -2,8 +2,6 @@ import {
   Controller,
   Get,
   Param,
-  HttpException,
-  InternalServerErrorException,
   NotFoundException,
   ParseIntPipe,
 } from "@nestjs/common"
