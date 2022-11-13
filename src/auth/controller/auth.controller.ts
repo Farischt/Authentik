@@ -20,6 +20,7 @@ import { RegisterValidationPipe } from "../pipe/register/registration.pipe"
 import { LoginValidationPipe } from "../pipe/login/login.pipe"
 import { AuthService } from "../service/auth.service"
 import { TokenService } from "../../token/service/token.service"
+// import { MailService } from "../../mail/mail.service"
 import { LoginDto, AuthConfirmAcountResponseType, AuthError } from "../types"
 
 @UseGuards(AuthGuard)
@@ -27,7 +28,7 @@ import { LoginDto, AuthConfirmAcountResponseType, AuthError } from "../types"
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly tokenService: TokenService
+    private readonly tokenService: TokenService // private readonly mailService: MailService
   ) {}
 
   /**
@@ -48,7 +49,10 @@ export class AuthController {
       firstName,
       lastName,
     })
-    await this.tokenService.createAccountConfirmationToken(user.id)
+    const token = await this.tokenService.createAccountConfirmationToken(
+      user.id
+    )
+    // await this.mailService.sendAccountConfirmation(user, token.id)
     return new SerializedUser(user)
   }
 

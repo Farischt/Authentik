@@ -17,11 +17,24 @@ export type AuthConfig = {
   TOKEN_TTL_IN_MS: number
 }
 
+export type MailConfig = {
+  HOST: string
+  USER: string
+  PASSWORD: string
+  FROM: string
+}
+
+export type FrontAppConfig = {
+  URL: string
+}
+
 export type BaseConfig = {
   PORT: number
   DATABASE: DatabaseConfig
   REDIS: RedisConfig
   AUTH: AuthConfig
+  MAIL: MailConfig
+  FRONT_APP: FrontAppConfig
 }
 
 export enum Configuration {
@@ -37,6 +50,13 @@ export enum Configuration {
   AUTH_SALT_ROUNDS = "AUTH.SALT_ROUNDS",
   AUTH_TOKEN_TTL_IN_SECONDS = "AUTH.TOKEN_TTL_IN_SECONDS",
   AUTH_TOKEN_TTL_IN_MS = "AUTH.TOKEN_TTL_IN_MS",
+  MAIL = "MAIL",
+  MAIL_FROM = "MAIL.FROM",
+  MAIL_HOST = "MAIL.HOST",
+  MAIL_USER = "MAIL.USER",
+  MAIL_PASSWORD = "MAIL.PASSWORD",
+  FRONT_APP = "FRONT_APP",
+  FRONT_APP_URL = "FRONT_APP.URL",
 }
 
 const env = process.env.NODE_ENV || "development"
@@ -56,5 +76,14 @@ export default (): BaseConfig => ({
     SALT_ROUNDS: parseInt(config[env].SALT_ROUNDS, 10),
     TOKEN_TTL_IN_SECONDS: parseInt(config[env].TOKEN_TTL_IN_SECONDS, 10),
     TOKEN_TTL_IN_MS: parseInt(config[env].TOKEN_TTL_IN_MS, 10),
+  },
+  MAIL: {
+    HOST: config[env].MAIL_HOST,
+    USER: config[env].MAIL_USER,
+    PASSWORD: config[env].MAIL_PASSWORD,
+    FROM: config[env].MAIL_FROM,
+  },
+  FRONT_APP: {
+    URL: config[env].FRONT_APP_URL,
   },
 })

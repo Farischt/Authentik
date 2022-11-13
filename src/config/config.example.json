@@ -1,0 +1,44 @@
+{
+  "development": {
+    "APP_PORT": 3000,
+    "FRONT_APP_URL": "example.com",
+    "DATABASE_URL": "postgresql://postgres:root@authentik_db:5432/nest-auth-dev?schema=public",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "SALT_ROUNDS": 10,
+    "TOKEN_TTL_IN_SECONDS": 3600,
+    "TOKEN_TTL_IN_MS": 3600000,
+    "MAIL_HOST": "smtp.office365.com",
+    "MAIL_USER": "user email",
+    "MAIL_PASSWORD": "user password",
+    "MAIL_FROM": "noreply@authentication-system.com <faris.dev@outlook.fr>"
+  },
+  "test": {
+    "APP_PORT": 3000,
+    "FRONT_APP_URL": "example.com",
+    "DATABASE_URL": "postgresql://postgres:root@localhost:5432/authentik-test?schema=public",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "SALT_ROUNDS": 10,
+    "TOKEN_TTL_IN_SECONDS": 3600,
+    "TOKEN_TTL_IN_MS": 3600000,
+    "MAIL_HOST": "smtp.mailtrap.io",
+    "MAIL_USER": "user",
+    "MAIL_PASSWORD": "password",
+    "MAIL_FROM": "noreply@authentik.com"
+  },
+  "production": {
+    "APP_PORT": 3000,
+    "FRONT_APP_URL": "example.com",
+    "DATABASE_URL": "postgresql://postgres:root@authentik_db:5432/nest-auth-prod?schema=public",
+    "REDIS_HOST": "authentik_redis",
+    "REDIS_PORT": "6379",
+    "SALT_ROUNDS": 10,
+    "TOKEN_TTL_IN_SECONDS": 3600,
+    "TOKEN_TTL_IN_MS": 3600000,
+    "MAIL_HOST": "smtp.mailtrap.io",
+    "MAIL_USER": "user",
+    "MAIL_PASSWORD": "password",
+    "MAIL_FROM": "noreply@authentik.com"
+  }
+}
