@@ -17,7 +17,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "pnpm sync && nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" && prisma format",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"mail/**/*.js\" \"mail/**/*.html\" && prisma format",
     "start": "nest start",
     "dev": "nest start --watch",
     "sync": "prisma generate",
