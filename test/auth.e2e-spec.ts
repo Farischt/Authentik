@@ -47,7 +47,7 @@ describe("AuthController (e2e)", () => {
   })
 
   describe("POST /register", () => {
-    describe("Registrater validation pipe", () => {
+    describe("Register validation pipe", () => {
       it("should NOT register a user if email is missing", () => {
         return request(AUTH_URL)
           .post("/register")
