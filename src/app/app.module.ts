@@ -6,6 +6,8 @@ import { AuthModule } from "../auth/auth.module"
 import { RedisModule } from "../cache/redis.module"
 import { ConfigurationModule as ConfigModule } from "../config/config.module"
 import { TokenModule } from "../token/token.module"
+import { MailModule } from "../mail/mail.module"
+import { AppController } from "./app.controller"
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { TokenModule } from "../token/token.module"
     PrismaModule,
     AuthModule,
     TokenModule,
+    MailModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
