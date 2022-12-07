@@ -4,7 +4,7 @@ import { TokenService } from "./token.service"
 
 import { Role, User, SessionToken } from "@prisma/client"
 import { CreateUserDto, SerializedUser } from "../../user/types"
-import { SessionTokenWithoutUserPassword } from "../../token/types"
+import { SessionTokenWithoutUserPassword } from "../types"
 
 const TOKEN_TTL_IN_SECONDS = 60 * 60
 const TOKEN_TTL_IN_MS = TOKEN_TTL_IN_SECONDS * 1000 // 3600000
