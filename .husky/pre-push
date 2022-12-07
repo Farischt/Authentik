@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+pnpm build || 
+(
+    echo 'Please run ``` pnpm build ``` and fix build errors before pushing your code'; 
+    false;
+)
+
+pnpm test || 
+(
+    echo 'Please run ``` pnpm test ``` and fix test errors before pushing your code'; 
+    false;
+)

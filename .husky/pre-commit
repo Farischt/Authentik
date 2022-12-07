@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+pnpm check-format || 
+(
+    echo 'Please run ``` pnpm format ``` before commiting'; 
+    false;
+)
+
+pnpm lint || 
+(
+    echo 'Please run ``` pnpm lint ``` and fix lint errors before commiting'; 
+    false;
+)
