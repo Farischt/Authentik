@@ -79,6 +79,7 @@ export class AuthController {
     //   )
     // )
     //   throw new BadRequestException(AuthError.AlreadyConfirmed)
+
     /** This update the user and delete the token */
     const user = await this.authService.confirmAccount(
       accountConfirmationToken.userId
