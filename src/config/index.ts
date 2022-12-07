@@ -18,6 +18,7 @@ export type AuthConfig = {
 }
 
 export type MailConfig = {
+  ENABLE: boolean
   HOST: string
   USER: string
   PASSWORD: string
@@ -51,6 +52,7 @@ export enum Configuration {
   AUTH_TOKEN_TTL_IN_SECONDS = "AUTH.TOKEN_TTL_IN_SECONDS",
   AUTH_TOKEN_TTL_IN_MS = "AUTH.TOKEN_TTL_IN_MS",
   MAIL = "MAIL",
+  MAIL_ENABLE = "MAIL.ENABLE",
   MAIL_FROM = "MAIL.FROM",
   MAIL_HOST = "MAIL.HOST",
   MAIL_USER = "MAIL.USER",
@@ -78,6 +80,7 @@ export default (): BaseConfig => ({
     TOKEN_TTL_IN_MS: parseInt(config[env].TOKEN_TTL_IN_MS, 10),
   },
   MAIL: {
+    ENABLE: config[env].ENABLE_MAIL,
     HOST: config[env].MAIL_HOST,
     USER: config[env].MAIL_USER,
     PASSWORD: config[env].MAIL_PASSWORD,
