@@ -29,7 +29,7 @@ model User {
 // TODO Think about creating a Token table listing all the tokens since they all have the same fields
 model AccountConfirmationToken {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int      @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -37,7 +37,7 @@ model AccountConfirmationToken {
 
 model SessionToken {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   ipAddr    String
   createdAt DateTime @default(now())
@@ -46,7 +46,7 @@ model SessionToken {
 
 model PasswordResetToken {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -55,7 +55,7 @@ model PasswordResetToken {
 model Profile {
   id        Int      @id @default(autoincrement())
   bio       String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int      @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
