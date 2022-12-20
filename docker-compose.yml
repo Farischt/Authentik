@@ -45,6 +45,8 @@ services:
   adminer:
     container_name: authentik_adminer
     image: adminer
+    environment:
+      ADMINER_DESIGN: pepa-linha
     restart: always
     ports:
       - "8080:8080"
