@@ -5,6 +5,7 @@ import {
   User,
   AccountConfirmationToken,
 } from "@prisma/client"
+import { randomBytes } from "crypto"
 
 import { SerializedUser } from "../../user/types"
 import { Token, TokenWithoutUserPassword } from "../types"
@@ -15,6 +16,10 @@ export class TokenService {
   private readonly SESSION_TOKEN_EXPIRATION = 60 * 60 // 1
 
   constructor(private readonly prisma: PrismaService) {}
+
+  private generateToken(): string {
+    return randomBytes(48).toString("hex")
+  }
 
   /**
    * Check token validity (expiration date)
@@ -42,7 +47,11 @@ export class TokenService {
     ipAddr: string
   ): Promise<SessionToken> {
     return await this.prisma.sessionToken.create({
-      data: { user: { connect: { id: userId } }, ipAddr },
+      data: {
+        user: { connect: { id: userId } },
+        id: this.generateToken(),
+        ipAddr,
+      },
     })
   }
 
@@ -70,7 +79,7 @@ export class TokenService {
   public async getSessionTokenWithoutUserPassword(
     sessionTokenWhereUniqueInput: Prisma.SessionTokenWhereUniqueInput,
     includeUser = true
-  ): Promise<TokenWithoutUserPassword> {
+  ): Promise<TokenWithoutUserPassword | null> {
     const sessionToken = await this.prisma.sessionToken.findUnique({
       where: sessionTokenWhereUniqueInput,
       include: {
@@ -96,7 +105,7 @@ export class TokenService {
    */
   public async getAccountConfirmationToken(
     accountConfirmationTokenWhereUniqueInput: Prisma.AccountConfirmationTokenWhereUniqueInput
-  ): Promise<AccountConfirmationToken> {
+  ): Promise<AccountConfirmationToken | null> {
     return await this.prisma.accountConfirmationToken.findUnique({
       where: accountConfirmationTokenWhereUniqueInput,
     })

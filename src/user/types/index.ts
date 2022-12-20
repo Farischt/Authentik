@@ -11,9 +11,10 @@ export class SerializedUser implements User {
   createdAt: Date
   updatedAt: Date
 
+  // TODO:
   constructor(user: User) {
     Object.assign(this, user)
-    this.password = null
+    this.password = "********"
   }
 }
 

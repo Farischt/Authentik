@@ -14,10 +14,10 @@ const DEFAULT_USER = {
   role: "USER" as Role,
   isVerified: false,
   createdAt: new Date(),
-  updatedAt: null,
+  updatedAt: new Date(),
 }
 
-const DEFAULT_RETURNED_USER = { ...DEFAULT_USER, password: null }
+const DEFAULT_RETURNED_USER = { ...DEFAULT_USER, password: "********" }
 const INVALID_ID = "0"
 
 describe("UserController", () => {

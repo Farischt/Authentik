@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bcrypt = require("bcryptjs")
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
@@ -28,7 +29,7 @@ export class AuthService {
    */
   public async getUser(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput
-  ): Promise<User> {
+  ): Promise<User | null> {
     return await this.userService.getUser(userWhereUniqueInput)
   }
 
@@ -62,6 +63,7 @@ export class AuthService {
     return user.isVerified
   }
 
+  // TODO : Update password requirements
   /**
    * Check if the password is long enough
    *
@@ -170,7 +172,7 @@ export class AuthService {
    */
   private async getAuthenticatedUserFromCache(
     req: Request
-  ): Promise<SerializedUser> {
+  ): Promise<SerializedUser | null> {
     const session = await this.redis.get<CacheSessionData>(
       this.getSessionCookie(req)
     )
@@ -186,11 +188,11 @@ export class AuthService {
    */
   private async getAuthenticatedUserFromDb(
     req: Request
-  ): Promise<SerializedUser> {
+  ): Promise<SerializedUser | null> {
     const session = await this.tokenService.getSessionTokenWithoutUserPassword({
       id: this.getSessionCookie(req),
     })
-    if (!session) return null
+    if (!session || !session.user) return null
     return session.user
   }
 
@@ -200,7 +202,9 @@ export class AuthService {
    * @param req The request
    * @returns The authenticated user
    */
-  public async getAuthenticatedUser(req: Request): Promise<SerializedUser> {
+  public async getAuthenticatedUser(
+    req: Request
+  ): Promise<SerializedUser | null> {
     return (
       (await this.getAuthenticatedUserFromCache(req)) ||
       (await this.getAuthenticatedUserFromDb(req))
@@ -214,6 +218,8 @@ export class AuthService {
    * @returns The confirmed user
    */
   public async confirmAccount(userId: User["id"]): Promise<User> {
+    // TODO : Raise error if user not found instead of returning null
+    // TODO : Type branding
     const user = await this.userService.updateUser(
       { id: userId },
       { isVerified: true }

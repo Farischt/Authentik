@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing"
 import { BadRequestException, NotFoundException } from "@nestjs/common"
+import { ConfigService } from "@nestjs/config"
 import { SessionToken, User } from "@prisma/client"
 import { Request, Response } from "express"
 
@@ -11,6 +12,8 @@ import { AuthService } from "../../auth/service/auth.service"
 import { ConfigurationModule as ConfigModule } from "../../config/config.module"
 import { UserService } from "../../user/service/user.service"
 import { TokenService } from "../../token/service/token.service"
+import { MailService } from "../../mail/mail.service"
+import { MailModule } from "../../mail/mail.module"
 import { CreateUserDto, SerializedUser } from "../../user/types"
 import { Token } from "../../token/types"
 import { AuthError, LoginDto } from "../types"
@@ -66,11 +69,12 @@ describe("AuthController", () => {
   let service: AuthService
   let tokenService: TokenService
   let prismaService: PrismaService
+  let mailService: MailService
 
   beforeAll(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule, RedisModule, PrismaModule],
-      providers: [AuthService, UserService, TokenService],
+      imports: [ConfigModule, RedisModule, PrismaModule, MailModule],
+      providers: [AuthService, UserService, TokenService, ConfigService],
       controllers: [AuthController],
     }).compile()
 
@@ -78,6 +82,7 @@ describe("AuthController", () => {
     service = app.get<AuthService>(AuthService)
     tokenService = app.get<TokenService>(TokenService)
     prismaService = app.get<PrismaService>(PrismaService)
+    mailService = app.get<MailService>(MailService)
   })
 
   afterAll(async () => {
@@ -96,6 +101,9 @@ describe("AuthController", () => {
     const createAccountConfirmationToken = jest
       .spyOn(tokenService, "createAccountConfirmationToken")
       .mockResolvedValue(ACCOUNT_TOKEN)
+    const mailer = jest
+      .spyOn(mailService, "sendAccountConfirmation")
+      .mockResolvedValue()
     const result = await controller.register(CREATE_USER_INPUT)
     expect(result).toEqual(SERIALIZED_USER)
     expect(hashPassword).toBeCalledWith(CREATE_USER_INPUT.password)
@@ -103,6 +111,7 @@ describe("AuthController", () => {
       ...CREATE_USER_INPUT,
       password: HASHED_PASSWORD,
     })
+    expect(mailer).toBeCalledTimes(1)
     expect(createAccountConfirmationToken).toBeCalledWith(USER.id)
   })
 
@@ -129,7 +138,7 @@ describe("AuthController", () => {
         .mockResolvedValue(ACCOUNT_TOKEN)
       const confirmAccount = jest
         .spyOn(service, "confirmAccount")
-        .mockResolvedValue(null)
+        .mockResolvedValue({} as User)
 
       try {
         await controller.confirmAccount(ACCOUNT_TOKEN.id)
@@ -315,7 +324,7 @@ describe("AuthController", () => {
     } as unknown as Response
     const deleteSessionToken = jest
       .spyOn(tokenService, "deleteSessionToken")
-      .mockResolvedValue(undefined)
+      .mockResolvedValue(null)
     const result = await controller.logout(requestMock, responseMock)
     expect(result).toEqual(undefined)
     expect(deleteSessionToken).toBeCalledWith({ id: SESSION_TOKEN.id })

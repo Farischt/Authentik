@@ -11,7 +11,7 @@ export class RedisService {
    * @param key The key to get
    * @returns The value
    */
-  public async get<T>(key: string): Promise<T> {
+  public async get<T>(key: string): Promise<T | undefined> {
     return await this.cacheManager.get<T>(key)
   }
 

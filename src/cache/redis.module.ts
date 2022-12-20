@@ -12,8 +12,8 @@ const RedisCacheModule = CacheModule.registerAsync({
     return {
       store: redisStore,
       isGlobal: true,
-      host: redisConfig.HOST,
-      port: redisConfig.PORT,
+      host: redisConfig?.HOST ?? "localhost",
+      port: redisConfig?.PORT ?? 6379,
     }
   },
   isGlobal: true,
