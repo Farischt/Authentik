@@ -28,6 +28,7 @@ export class MailService {
       context: {
         name: user.firstName,
         url,
+        token,
       },
     })
   }

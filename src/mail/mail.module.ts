@@ -16,15 +16,15 @@ import { MailService } from "./mail.service"
         const mailConfig = config.get<MailConfig>(Configuration.MAIL)
         return {
           transport: {
-            host: mailConfig.HOST,
+            host: mailConfig?.HOST ?? "localhost",
             secure: false,
             auth: {
-              user: mailConfig.USER,
-              pass: mailConfig.PASSWORD,
+              user: mailConfig?.USER ?? "user",
+              pass: mailConfig?.PASSWORD ?? "password",
             },
           },
           defaults: {
-            from: mailConfig.FROM,
+            from: mailConfig?.FROM ?? "user@localhost",
           },
           template: {
             dir: join(__dirname, "templates"),
