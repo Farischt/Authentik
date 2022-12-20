@@ -36,7 +36,7 @@ model AccountConfirmationToken {
 }
 
 model SessionToken {
-  id        String   @id @default(uuid())
+  id        String   @id 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   ipAddr    String
