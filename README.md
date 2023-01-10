@@ -38,6 +38,8 @@ Complete your env files as stated in .env.example files.
 
 Complete your config module as stated [here](./src/config/config.example.json).
 
+Update [docker-compose.yml](./docker-compose.yml) to reflect your config changes.
+
 Start docker containers with : `pn docker:dev`
 
 Run migrations : `pn migrate:dev`
