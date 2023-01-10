@@ -29,10 +29,32 @@
 ## Installation
 
 ```bash
-$ pn install
+ pn install
 ```
 
-Documentation coming soon 🚀
+## Run Locally
+
+Complete your env files as stated in .env.example files.
+
+Complete your config module as stated [here](./src/config/config.example.json).
+
+Start docker containers with : `pn docker:dev`
+
+Run migrations : `pn migrate:dev`
+
+Start the development server : `pn dev`
+
+## Testing
+
+Run migration on the test db: `pn migrate:test`
+
+Before running any test script, make sure to start the server in test mode : `pn dev:test`
+
+You can now run any test script in package.json
+
+## Production
+
+No production environnement is available yet.
 
 ## License
 
