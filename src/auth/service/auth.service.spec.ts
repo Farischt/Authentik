@@ -38,11 +38,11 @@ const UNAVAILABLE_USER_EMAIL = "some@random.com"
 const AVAILABLE_USER_EMAIL = "some@available.com"
 
 const SMALL_PASSWORD = "123"
-const LONG_PASSWORD = "12345678"
+const LONG_PASSWORD = "123456789101112"
 const WEAK_PASSWORD = "12345678"
-const STRONG_PASSWORD = "12345678Aa!"
+const STRONG_PASSWORD = "12345678Aa!#bnec"
 const HASHED_STRONG_PASSWORD =
-  "$2a$10$1SpVbDYdGGl31ySV4WIbJe/C.kN5ILpSxNBYc8CgsvrpzecgESokG"
+  "$2a$10$oWjUf9jz6N7IkqhAnKwycuywax/g5sXF7qT9BWy6oi.sgQR/eeW0K"
 
 const IP_ADDRESS = "127.0.0.1"
 

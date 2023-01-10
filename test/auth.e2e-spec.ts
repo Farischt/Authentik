@@ -57,9 +57,7 @@ describe("AuthController (e2e)", () => {
   })
 
   afterAll(async () => {
-    await prismaService.user.delete({
-      where: { email: VALID_CREATE_USER.email },
-    })
+    await prismaService.clearDatabase()
     await prismaService.$disconnect()
     await app.close()
   })
@@ -136,7 +134,7 @@ describe("AuthController (e2e)", () => {
           expect(response.body.email).toEqual(VALID_CREATE_USER.email)
           expect(response.body.firstName).toEqual(VALID_CREATE_USER.firstName)
           expect(response.body.lastName).toEqual(VALID_CREATE_USER.lastName)
-          expect(response.body.password).toEqual(null)
+          expect(response.body.password).toEqual("********")
           expect(response.statusCode).toEqual(201)
         })
     })
