@@ -15,4 +15,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       await app.close()
     })
   }
+
+  public async clearDatabase() {
+    await this.$executeRawUnsafe(`TRUNCATE TABLE "User" CASCADE`)
+  }
 }
