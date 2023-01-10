@@ -12,7 +12,7 @@
     "MAIL_HOST": "smtp.office365.com",
     "MAIL_USER": "user email",
     "MAIL_PASSWORD": "user password",
-    "MAIL_FROM": "noreply@authentication-system.com <faris.dev@outlook.fr>"
+    "MAIL_FROM": "noreply@authentication-system.com <email>"
   },
   "test": {
     "APP_PORT": 3000,
