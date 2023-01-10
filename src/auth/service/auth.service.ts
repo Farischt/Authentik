@@ -71,7 +71,8 @@ export class AuthService {
    * @returns true if the password is long enough, false if not
    */
   public isPasswordLongEnough(password: User["password"]): boolean {
-    return password.length >= 8
+    // ANSSI Minimal recommandation
+    return password.length >= 12
   }
 
   /**
@@ -81,7 +82,10 @@ export class AuthService {
    * @returns true if the password is strong enough, false if not
    */
   public isPasswordStrongEnough(password: User["password"]): boolean {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})/.test(password)
+    // ANSSI Minimal recommandation
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*?[#?!@$%^&*-])(?=.{12,})/.test(
+      password
+    )
   }
 
   /**

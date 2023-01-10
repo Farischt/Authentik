@@ -9,7 +9,7 @@ export enum AuthError {
   InvalidCredentials = "Invalid credentials !",
   LastNameRequired = "Last name is required !",
   PasswordRequired = "Password is required !",
-  PasswordNotLong = "Password must be at least 8 characters long !",
+  PasswordNotLong = "Password must be at least 12 characters long !",
   PasswordNotStrong = "Password must be alphanumeric and contains a special character !",
   AlreadyLoggedIn = "Your session has expired. Please login again.",
   AlreadyConfirmed = "Your account is already confirmed !",
