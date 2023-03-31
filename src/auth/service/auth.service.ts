@@ -75,6 +75,8 @@ export class AuthService {
     return password.length >= 12
   }
 
+  // TODO: Compute entropy of password
+  // Math.log2(Math.pow(26, 12)) = 66.5
   /**
    * Check if the password is strong enough
    *

@@ -99,6 +99,7 @@ export class AuthController {
    * @param req the request
    * @param res the response
    */
+  // TODO: Eslint rule to check post methods
   @Post("login")
   async login(
     @Body(LoginValidationPipe) input: LoginDto,

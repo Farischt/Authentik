@@ -7,8 +7,11 @@ import { AuthError } from "../../types"
 export class LoginValidationPipe implements PipeTransform {
   constructor(private readonly authService: AuthService) {}
 
+  // TODO: use class validator
   async transform(input: LoginDto) {
+    // Check input
     const { email, password } = input
+
     if (!email || typeof email !== "string") {
       throw new BadRequestException(AuthError.EmailRequired)
     } else if (!password || typeof password !== "string") {

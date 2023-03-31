@@ -14,6 +14,8 @@ export class UserService {
    * @param userWhereUniqueInput the user's unique input (id, email, etc.)
    * @returns The user or null if not found
    */
+
+  // TODO : remove useless await
   public async getUser(
     userWhereUniqueInput: Prisma.UserWhereUniqueInput
   ): Promise<User | null> {

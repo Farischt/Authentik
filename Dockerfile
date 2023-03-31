@@ -2,7 +2,10 @@
 #                        Prisma issue on binary targets                        #
 # ---------------------------------------------------------------------------- #
 
-FROM node:alpine As development
+FROM node:lts As development
+
+RUN apt-get update
+RUN apt-get install openssl
 
 WORKDIR /usr/src/app
 
@@ -15,7 +18,7 @@ RUN pnpm install
 COPY . .
 RUN pnpm build
 
-FROM node:alpine As production
+FROM node:lts As production
 
 WORKDIR /usr/src/app
 

@@ -1,5 +1,7 @@
 version: "3.9"
-name: "Authentik"
+
+name: "authentik"
+
 services:
   redis:
     container_name: authentik_redis
@@ -56,19 +58,19 @@ services:
       - backend
 
   # -------------------------------------------------------------------------- #
-  #                       Prisma issue on binary targets                       #
+  #               Prisma issue on binary targets using MAC M1 CHIP             #
   # -------------------------------------------------------------------------- #
 
-  # rest-api:
-  #   container_name: authentik_api
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - database
-  #     - redis
-  #   networks:
-  #     - backend
+  rest-api:
+    container_name: authentik_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - database
+      - redis
+    networks:
+      - backend
 
 networks:
   backend:

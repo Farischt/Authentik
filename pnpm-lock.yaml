@@ -10,7 +10,7 @@ specifiers:
   '@nestjs/platform-express': ^9.0.0
   '@nestjs/schematics': ^9.0.0
   '@nestjs/testing': ^9.0.0
-  '@prisma/client': ^4.5.0
+  '@prisma/client': ^4.10.1
   '@types/bcryptjs': ^2.4.2
   '@types/cache-manager': ^4.0.2
   '@types/cookie-parser': ^1.4.3
@@ -52,7 +52,7 @@ dependencies:
   '@nestjs/core': 9.1.6_bx3wiubfryfbvpzqwr6ml4ajpu
   '@nestjs/mapped-types': 1.2.0_baolvlqsqmhkyjeld7q44n44k4
   '@nestjs/platform-express': 9.1.6_6whalgrsvisgjemghedgkfq7dm
-  '@prisma/client': 4.5.0_prisma@4.5.0
+  '@prisma/client': 4.10.1_prisma@4.5.0
   bcryptjs: 2.4.3
   cache-manager: 2.11.1
   cache-manager-redis-store: 2.0.0
@@ -1112,8 +1112,8 @@ packages:
     transitivePeerDependencies:
       - encoding
 
-  /@prisma/client/4.5.0_prisma@4.5.0:
-    resolution: {integrity: sha512-B2cV0OPI1smhdYUxsJoLYQLoMlLH06MUxgFUWQnHodGMX98VRVXKmQE/9OcrTNkqtke5RC+YU24Szxd04tZA2g==}
+  /@prisma/client/4.10.1_prisma@4.5.0:
+    resolution: {integrity: sha512-VonXLJZybdt8e5XZH5vnIGCRNnIh6OMX1FS3H/yzMGLT3STj5TJ/OkMcednrvELgk8PK89Vo3aSh51MWNO0axA==}
     engines: {node: '>=14.17'}
     requiresBuild: true
     peerDependencies:
@@ -1122,12 +1122,12 @@ packages:
       prisma:
         optional: true
     dependencies:
-      '@prisma/engines-version': 4.5.0-43.0362da9eebca54d94c8ef5edd3b2e90af99ba452
+      '@prisma/engines-version': 4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19
       prisma: 4.5.0
     dev: false
 
-  /@prisma/engines-version/4.5.0-43.0362da9eebca54d94c8ef5edd3b2e90af99ba452:
-    resolution: {integrity: sha512-o7LyVx8PPJBLrEzLl6lpxxk2D5VnlM4Fwmrbq0NoT6pr5aa1OuHD9ZG+WJY6TlR/iD9bhmo2LNcxddCMr5Rv2A==}
+  /@prisma/engines-version/4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19:
+    resolution: {integrity: sha512-tsjTho7laDhf9EJ9EnDxAPEf7yrigSMDhniXeU4YoWc7azHAs4GPxRi2P9LTFonmHkJLMOLjR77J1oIP8Ife1w==}
     dev: false
 
   /@prisma/engines/4.5.0:
